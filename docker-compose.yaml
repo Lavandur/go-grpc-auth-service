@@ -1,0 +1,16 @@
+version: "3.3"
+
+services:
+  psql-db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - PSQL_PASSWORD=auth
+      - PSQL_USER=auth
+      - PSQL_DB=auth
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
