@@ -6,4 +6,4 @@ auth:
       database: "auth"
       user: "auth"
       password: "auth"
-      sslmode: false
+      sslmode: disable

@@ -1,16 +1,49 @@
 version: "3.3"
 
 services:
-  psql-db:
-    image: postgres:latest
+  postgres:
+    image: postgres:15.3-alpine3.18
+    command: postgres -c 'max_connections=1000'
     ports:
       - "5432:5432"
     environment:
-      - PSQL_PASSWORD=auth
-      - PSQL_USER=auth
-      - PSQL_DB=auth
+      POSTGRES_PASSWORD: auth
+      POSTGRES_USER: auth
+      POSTGRES_DB": auth
+      POSTGRES_MULTIPLE_DATABASES: reference
+    healthcheck:
+      test: pg_isready --username "auth" --dbname "reference"
+      interval: 1s
+      retries: 5
+      timeout: 5s
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./docker-multiple-databases.sh:/docker-entrypoint-initdb.d/docker-multiple-databases.sh:ro
+    tmpfs:
+      - /var/lib/postgresql/data:rw # Necessary to speed up integration tests.
 
-volumes:
-  db_data:
+  migrate-reference:
+    image: migrate/migrate:v4.16.2
+    command: >
+      -source 'file:///db/migrations'
+      -database 'postgresql://auth:auth@postgres:5432/reference?sslmode=disable' up
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./db/migrations:/db/migrations:ro
+
+  migrate:
+    image: postgres:15.3-alpine3.18
+    command: echo 'All migrations have been successfully applied!'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate-reference:
+        condition: service_completed_successfully
+
+
+#    volumes:
+#      - db_data:/var/lib/postgresql/data
+#
+#volumes:
+#  db_data:

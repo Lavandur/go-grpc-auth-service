@@ -5,10 +5,10 @@ CREATE TABLE IF NOT EXISTS users (
     hashed_password VARCHAR NOT NULL,
     person JSONB NOT NULL,
     role_ids VARCHAR[],
-    deleted_date TIMESTAMP,
     created_date TIMESTAMP,
     updated_date TIMESTAMP,
-    last_password_restore_date_time TIMESTAMP,
+    deleted_date TIMESTAMP,
+    last_password_restore_date TIMESTAMP,
     search_index VARCHAR
 );
 

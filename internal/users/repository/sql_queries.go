@@ -1,10 +1,37 @@
 package repository
 
 var (
-	insertUsers = `INSERT INTO users (id, login, visible_id, hashed_password, person, role_ids, deleted_date, created_date, updated_date, last_password_restore_date_time, search_index) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
-	getListUsers = `SELECT * FROM users;`
-	getUserByID  = `SELECT * FROM users WHERE id = $1;`
-	deleteUser   = `DELETE FROM users WHERE id = $1;`
-	// updateUser   = `INSERT INTO users (username, password) VALUES (?, ?)`
+	getUserByID = `
+		SELECT id, login, visible_id, hashed_password, person, role_ids, 
+			   created_date, updated_date, deleted_date, last_password_restore_date, search_index 
+		FROM users 
+		WHERE id = @userID AND deleted_date IS NULL;
+	`
+
+	insertUser = `
+		INSERT INTO users (id, login, visible_id, hashed_password, person, role_ids, 
+						   created_date, updated_date, deleted_date, last_password_restore_date) 
+		VALUES (@userID, @login, @visibleID, @hashedPassword, @person, @roles, 
+				@createdAt, @updatedAt, @deletedAt, @lastPasswordRestoreAt)
+		RETURNING id, login, visible_id, hashed_password, person, role_ids, 
+				  created_date, updated_date, deleted_date, last_password_restore_date, search_index;
+	`
+
+	updateUser = `
+		UPDATE users 
+		SET login = @login, visible_id = @visibleID, hashed_password = @hashedPassword, 
+			person = @person, role_ids = @roles, updated_date = @updatedAt, 
+			deleted_date = @deletedAt, last_password_restore_date = @lastPasswordRestoreAt 
+		WHERE id = @userID
+		RETURNING id, login, visible_id, hashed_password, person, role_ids, 
+				  created_date, updated_date, deleted_date, last_password_restore_date, search_index;
+	`
+
+	deleteUser = `
+		UPDATE users 
+		SET deleted_date = @deletedAt
+		WHERE id = @userID
+		RETURNING id, login, visible_id, hashed_password, person, role_ids, 
+				  created_date, updated_date, deleted_date, last_password_restore_date, search_index;
+	`
 )
