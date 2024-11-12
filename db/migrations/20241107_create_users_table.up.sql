@@ -22,3 +22,16 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 
   CONSTRAINT unique_role_permission UNIQUE (role_id, permission)
 );
+
+CREATE TABLE IF NOT EXISTS permissions (
+    id UUID NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    description JSONB
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+    id UUID NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    description JSONB,
+    created_at TIMESTAMP
+);

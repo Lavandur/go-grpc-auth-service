@@ -13,7 +13,7 @@ type User struct {
 	VisibleID             string     `json:"visibleID"`
 	HashedPassword        string     `json:"hashedPassword"`
 	Person                Person     `json:"person"`
-	Roles                 []string   `json:"roles"`
+	Roles                 []*Role    `json:"roles"`
 	CreatedAt             time.Time  `json:"createdAt"`
 	UpdatedAt             time.Time  `json:"updatedAt"`
 	DeletedAt             *time.Time `json:"deletedAt"`
@@ -36,7 +36,7 @@ func (a *Person) Value() (driver.Value, error) {
 func (a *Person) Scan(value interface{}) error {
 	b, ok := value.(string)
 	if !ok {
-		return errors.New("type assertion to []byte failed")
+		return errors.New("type assertion to string failed")
 	}
 
 	return json.Unmarshal([]byte(b), &a)
