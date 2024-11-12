@@ -7,25 +7,25 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: auth
-      POSTGRES_USER: auth
-      POSTGRES_DB": auth
-      POSTGRES_MULTIPLE_DATABASES: reference
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB": ${POSTGRES_DBNAME}
+      POSTGRES_MULTIPLE_DATABASES: ${DBNAME_FOR_TEST}
     healthcheck:
-      test: pg_isready --username "auth" --dbname "reference"
+      test: pg_isready --username "${POSTGRES_USER}" --dbname "${DBNAME_FOR_TEST}"
       interval: 1s
       retries: 5
       timeout: 5s
     volumes:
       - ./docker-multiple-databases.sh:/docker-entrypoint-initdb.d/docker-multiple-databases.sh:ro
     tmpfs:
-      - /var/lib/postgresql/data:rw # Necessary to speed up integration tests.
+      - /var/lib/postgresql/data:rw
 
   migrate-reference:
     image: migrate/migrate:v4.16.2
     command: >
       -source 'file:///db/migrations'
-      -database 'postgresql://auth:auth@postgres:5432/reference?sslmode=disable' up
+      -database 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${DBNAME_FOR_TEST}?sslmode=disable' up
     depends_on:
       postgres:
         condition: service_healthy

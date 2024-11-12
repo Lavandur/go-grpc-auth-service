@@ -57,8 +57,8 @@ type Postgres struct {
 func newPostgres(t TestingT) *Postgres {
 	conf := prepareConfig()
 
-	refDB := os.Getenv("REF_DB_NAME")
-	if refDB == "" {
+	refDB, ok := os.LookupEnv("DBNAME_FOR_TEST")
+	if !ok {
 		refDB = "reference"
 	}
 
@@ -72,15 +72,27 @@ func newPostgres(t TestingT) *Postgres {
 
 func (p *Postgres) DB() *pgxpool.Pool {
 	p.poolOnce.Do(func() {
-		p.pool = open(p.t, p.conf)
+		p.pool = openConn(p.t, p.conf)
 	})
 
 	return p.pool
 }
 
+func openConn(t TestingT, conf *config.Config) *pgxpool.Pool {
+
+	pg, err := postgres.NewPG(conf)
+	require.NoError(t, err)
+
+	// Close connection after the test is completed.
+	t.Cleanup(func() {
+		pg.Close()
+	})
+
+	return pg
+}
+
 func (p *Postgres) cloneFromReference() *Postgres {
 	newDBName := getUniqueDBName(p.ref, p.t)
-
 	p.t.Log("database name for this test:", newDBName)
 
 	sql := fmt.Sprintf(
@@ -95,7 +107,7 @@ func (p *Postgres) cloneFromReference() *Postgres {
 	p.t.Cleanup(func() {
 		sql := fmt.Sprintf(`DROP DATABASE %q WITH (FORCE);`, newDBName)
 
-		ctx, done := context.WithTimeout(context.Background(), time.Minute)
+		ctx, done := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer done()
 
 		_, err := p.DB().Exec(ctx, sql)
@@ -136,17 +148,4 @@ func getUniqueDBName(prefix string, t TestingT) string {
 	dbName.WriteString(r)
 
 	return dbName.String()
-}
-
-func open(t TestingT, conf *config.Config) *pgxpool.Pool {
-
-	pg, err := postgres.NewPG(conf)
-	require.NoError(t, err)
-
-	// Close connection after the test is completed.
-	t.Cleanup(func() {
-		pg.Close()
-	})
-
-	return pg
 }
