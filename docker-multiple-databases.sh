@@ -3,7 +3,7 @@
 function create_db_with_user() {
   local database=$1
   echo "Creating user and database '$database'"
-  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+  psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" <<-EOSQL
       CREATE DATABASE "$database" OWNER $POSTGRES_USER;
 EOSQL
 }

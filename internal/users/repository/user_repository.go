@@ -109,7 +109,7 @@ func (r *usersRepository) Delete(ctx context.Context, id string) (*models.User, 
 }
 
 func (r *usersRepository) fetchUser(ctx context.Context, row pgx.Row) (*models.User, error) {
-	var roleIDs []string
+	roleIDs := make([]string, 0)
 	var user models.User
 	err := row.Scan(&user.UserID, &user.Login, &user.VisibleID,
 		&user.HashedPassword, &user.Person, &roleIDs,

@@ -1,4 +1,4 @@
-run_tests:
+test:
 	go test ./... -v -cover
 
 DB_NAME = auth

@@ -1,14 +1,15 @@
-package permission
+package roles
 
 var (
-	setPermission = `
+	clearPermission = `
 		DELETE FROM role_permissions
 		WHERE role_id = @roleID;
-
-		INSERT INTO role_permissions (id, name)
+	`
+	setPermissions = `
+		INSERT INTO role_permissions (role_id, permission)
 		VALUES (@roleID, @permission);
 	`
-	getPermissionByID = `
+	getPermissionsByID = `
 		SELECT * FROM role_permissions
 		WHERE role_id = @roleID;
 	`

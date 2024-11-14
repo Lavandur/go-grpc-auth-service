@@ -18,7 +18,7 @@ CREATE INDEX ON users (search_index);
 
 CREATE TABLE IF NOT EXISTS role_permissions (
   role_id UUID NOT NULL,
-  permission VARCHAR NOT NULL,
+  permission VARCHAR[] NOT NULL,
 
   CONSTRAINT unique_role_permission UNIQUE (role_id, permission)
 );
