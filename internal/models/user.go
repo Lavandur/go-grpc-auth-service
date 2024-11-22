@@ -41,3 +41,36 @@ func (a *Person) Scan(value interface{}) error {
 
 	return json.Unmarshal([]byte(b), &a)
 }
+
+type UserInput struct {
+	Login     string
+	Password  string
+	Firstname string
+	Lastname  string
+	Birthdate time.Time
+	Email     string
+	Gender    string
+	RoleIDs   []string
+}
+
+type UserUpdateInput struct {
+	Login     *string
+	Password  *string
+	Firstname *string
+	Lastname  *string
+	Birthdate time.Time
+	Email     *string
+	Gender    *string
+	RoleIDs   []string
+}
+
+type UserLogin struct {
+	Login    string
+	Password string
+}
+
+type UserFilter struct {
+	UserID *[]string
+	Login  *[]string
+	Email  *[]string
+}

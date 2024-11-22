@@ -1,4 +1,4 @@
-package roles
+package repository
 
 import (
 	"auth-service/testingdb"
@@ -10,6 +10,10 @@ import (
 	"testing"
 )
 
+var (
+	logger = logrus.New()
+)
+
 func Test_permissionRepository_GetRolePermissions(t *testing.T) {
 	t.Parallel()
 
@@ -18,7 +22,7 @@ func Test_permissionRepository_GetRolePermissions(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repository := NewPermissionRepository(pg.DB(), nil)
+		repository := NewPermissionRepository(pg.DB(), logger)
 		id := "3422b448-2460-4fd2-9183-8000de6f8343"
 		expected := []string{"CAN_READ", "CAN_WRITE", "CAN_SEE"}
 

@@ -64,7 +64,7 @@ func SetupConfiguration() (*Config, error) {
 			logrus.Error(err)
 		}
 
-		err = viper.Unmarshal(instance)
+		err = viper.Unmarshal(&instance)
 		if err != nil {
 			logrus.Error(err)
 		}

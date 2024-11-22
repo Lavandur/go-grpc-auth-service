@@ -1,8 +1,9 @@
 package repository
 
 import (
-	"auth-service/internal/users/models"
-	"auth-service/internal/users/repository/roles"
+	"auth-service/internal/models"
+	"auth-service/internal/roles"
+	"auth-service/internal/roles/mock"
 	"auth-service/testingdb"
 	"context"
 	"github.com/golang/mock/gomock"
@@ -43,7 +44,7 @@ func prepareUser() models.User {
 }
 
 func getRoleRepMock(ctrl *gomock.Controller) roles.RoleRepository {
-	roleRep := roles.NewMockRoleRepository(ctrl)
+	roleRep := mock.NewMockRoleRepository(ctrl)
 	roleRep.EXPECT().
 		GetByID(gomock.Any(), gomock.Any()).
 		Return(&models.Role{

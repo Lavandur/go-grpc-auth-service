@@ -1,13 +1,18 @@
-package roles
+package repository
 
 import (
 	"auth-service/internal/common"
-	"auth-service/internal/users/models"
+	"auth-service/internal/models"
 	"auth-service/testingdb"
 	"context"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+)
+
+var (
+	logger = logrus.New()
 )
 
 func Test_roleRepository_Create(t *testing.T) {
@@ -24,7 +29,7 @@ func Test_roleRepository_Create(t *testing.T) {
 		t.Parallel()
 
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		create, err := repos.Create(context.Background(), &role)
 		assert.NoError(t, err)
@@ -36,7 +41,7 @@ func Test_roleRepository_Create(t *testing.T) {
 		t.Parallel()
 
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(context.Background(), &role)
 		assert.NoError(t, err)
@@ -60,7 +65,7 @@ func Test_roleRepository_Update(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(ctx, &role)
 		assert.NoError(t, err)
@@ -76,7 +81,7 @@ func Test_roleRepository_Update(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Update(ctx, &role)
 		assert.Error(t, err)
@@ -97,7 +102,7 @@ func Test_roleRepository_Delete(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(ctx, &role)
 		assert.NoError(t, err)
@@ -111,7 +116,7 @@ func Test_roleRepository_Delete(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		err := repos.Delete(ctx, "some unused id")
 		assert.Error(t, err)
@@ -133,7 +138,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(ctx, &role)
 		assert.NoError(t, err)
@@ -148,10 +153,25 @@ func Test_roleRepository_Getting(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.GetByID(ctx, role.RoleID)
 		assert.Error(t, err)
+	})
+
+	t.Run("Get role by name", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		pg := testingdb.NewWithIsolatedDatabase(t)
+		repos := &roleRepository{pg.DB(), logger}
+
+		_, err := repos.Create(ctx, &role)
+		assert.NoError(t, err)
+
+		got, err := repos.GetByName(ctx, role.Name)
+		assert.NoError(t, err)
+		assert.Equal(t, &role, got)
 	})
 
 	t.Run("Get a list of roles", func(t *testing.T) {
@@ -159,7 +179,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 
 		ctx := context.Background()
 		pg := testingdb.NewWithIsolatedDatabase(t)
-		repos := &roleRepository{pg.DB(), nil}
+		repos := &roleRepository{pg.DB(), logger}
 
 		first := models.Role{
 			RoleID:      "3422b448-2460-4fd2-9183-8000de6f8343",
@@ -183,6 +203,6 @@ func Test_roleRepository_Getting(t *testing.T) {
 
 		got, err := repos.GetList(ctx, pagination)
 		assert.NoError(t, err)
-		assert.Len(t, got, 2)
+		assert.Len(t, got, 3)
 	})
 }

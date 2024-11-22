@@ -1,30 +1,48 @@
-package roles
+package repository
 
 import (
 	"auth-service/internal/common"
-	"auth-service/internal/users/models"
+	"auth-service/internal/models"
+	"auth-service/internal/roles"
 	"context"
 	"errors"
+	"github.com/doug-martin/goqu"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
 )
-
-type RoleRepository interface {
-	GetByID(ctx context.Context, id string) (*models.Role, error)
-	GetList(ctx context.Context, pagination common.Pagination) ([]*models.Role, error)
-
-	Create(ctx context.Context, data *models.Role) (*models.Role, error)
-	Update(ctx context.Context, data *models.Role) (*models.Role, error)
-	Delete(ctx context.Context, id string) error
-}
 
 type roleRepository struct {
 	db     *pgxpool.Pool
 	logger *logrus.Logger
 }
 
-func NewRoleRepository(db *pgxpool.Pool, logger *logrus.Logger) RoleRepository {
+func (r roleRepository) GetByName(ctx context.Context, name string) (*models.Role, error) {
+	r.logger.WithField("name", name).Debug("Get role by name")
+
+	query, args, err := goqu.From("roles").
+		Where(goqu.Ex{"name": name}).
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var role models.Role
+	err = r.db.
+		QueryRow(ctx, query, args...).
+		Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, err
+		}
+		return nil, err
+	}
+
+	return &role, nil
+}
+
+func NewRoleRepository(db *pgxpool.Pool, logger *logrus.Logger) roles.RoleRepository {
 	return &roleRepository{
 		db:     db,
 		logger: logger,

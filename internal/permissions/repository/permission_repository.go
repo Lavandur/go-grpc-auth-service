@@ -1,6 +1,7 @@
-package roles
+package repository
 
 import (
+	"auth-service/internal/permissions"
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
@@ -8,17 +9,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type PermissionRepository interface {
-	GetRolePermissions(ctx context.Context, id string) ([]string, error)
-	SetRolePermissions(ctx context.Context, id string, permission []string) (bool, error)
-}
-
 type permissionRepository struct {
 	db     *pgxpool.Pool
 	logger *logrus.Logger
 }
 
-func NewPermissionRepository(db *pgxpool.Pool, logger *logrus.Logger) PermissionRepository {
+func NewPermissionRepository(db *pgxpool.Pool, logger *logrus.Logger) permissions.PermissionRepository {
 	return &permissionRepository{
 		db:     db,
 		logger: logger,
@@ -54,12 +50,12 @@ func (p *permissionRepository) SetRolePermissions(ctx context.Context, id string
 }
 
 func (p *permissionRepository) fetchPermissions(row pgx.Row) ([]string, error) {
-	var permissions []string
+	var permissionList []string
 
-	err := row.Scan(nil, &permissions)
+	err := row.Scan(nil, &permissionList)
 	if err != nil {
 		return nil, err
 	}
 
-	return permissions, nil
+	return permissionList, nil
 }

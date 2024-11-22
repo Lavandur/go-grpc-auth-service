@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package pb;
+
+import "user.proto";
+
+option go_package = "internal/grpc/pb";
+
+
+import "google/protobuf/timestamp.proto";
+
+message LoginUserRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message LoginUserResponse {
+  User user = 1;
+  string accessToken = 2;
+  string refreshToken = 3;
+  google.protobuf.Timestamp accessExpiresAt = 4;
+  google.protobuf.Timestamp refreshExpiresAt = 5;
+}

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "internal/grpc/pb";
+
+message User {
+  string login = 1;
+  Person person = 2;
+}
+
+message Person {
+  string firstname = 1;
+  string lastname = 2;
+  string email = 3;
+  string gender = 4;
+}
+
+message ArrayUser {
+  repeated User user = 1;
+}

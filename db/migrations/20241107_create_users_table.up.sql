@@ -35,3 +35,5 @@ CREATE TABLE IF NOT EXISTS roles (
     description JSONB,
     created_at TIMESTAMP
 );
+
+INSERT INTO roles (id, name, description, created_at) VALUES ('c71fdcf2-be28-4a49-afc1-4d48c5747dc5', 'USER', '{"ru": "Стандартная роль", "en": "Default role"}', '2004-10-19 10:23:54');

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "internal/grpc/pb";
+
+message UserFilter {
+   optional ArrayLogin logins = 1;
+   optional ArrayEmail emails = 2;
+   optional ArrayUserID userIDs = 3;
+}
+
+message ArrayLogin {
+  repeated string login = 1;
+}
+
+message ArrayEmail {
+  repeated string email = 1;
+}
+
+message ArrayUserID {
+  repeated string userID = 1;
+}

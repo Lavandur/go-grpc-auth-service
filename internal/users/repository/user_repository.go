@@ -1,35 +1,29 @@
 package repository
 
 import (
-	"auth-service/internal/users/models"
-	"auth-service/internal/users/repository/roles"
+	"auth-service/internal/models"
+	"auth-service/internal/roles"
+	"auth-service/internal/users"
 	"context"
 	"errors"
+	"github.com/doug-martin/goqu"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
 	"time"
 )
 
-type UsersRepository interface {
-	GetByID(ctx context.Context, id string) (*models.User, error)
-
-	Create(ctx context.Context, user *models.User) (*models.User, error)
-	Update(ctx context.Context, user *models.User) (*models.User, error)
-	Delete(ctx context.Context, id string) (*models.User, error)
-}
-
 type usersRepository struct {
-	db       *pgxpool.Pool
-	rolesRep roles.RoleRepository
-	logger   *logrus.Logger
+	db             *pgxpool.Pool
+	roleRepository roles.RoleRepository
+	logger         *logrus.Logger
 }
 
-func NewUsersRepository(pool *pgxpool.Pool, rolesRepository roles.RoleRepository, logger *logrus.Logger) UsersRepository {
+func NewUsersRepository(pool *pgxpool.Pool, rolesRepository roles.RoleRepository, logger *logrus.Logger) users.UserRepository {
 	return &usersRepository{
-		db:       pool,
-		rolesRep: rolesRepository,
-		logger:   logger,
+		db:             pool,
+		roleRepository: rolesRepository,
+		logger:         logger,
 	}
 }
 
@@ -48,6 +42,36 @@ func (r *usersRepository) GetByID(ctx context.Context, id string) (*models.User,
 		return nil, err
 	}
 	return user, nil
+}
+
+func (r *usersRepository) GetList(ctx context.Context, filter *models.UserFilter) ([]*models.User, error) {
+
+	usersList := make([]*models.User, 0)
+	whereList, err := r.getWhereList(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	query, _, _ := goqu.From("users").Where(whereList...).ToSql()
+
+	rows, err := r.db.Query(ctx, query)
+	defer rows.Close()
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	for rows.Next() {
+		user, err := r.fetchUser(ctx, rows)
+		if err != nil {
+			return nil, err
+		}
+		usersList = append(usersList, user)
+	}
+
+	return usersList, nil
 }
 
 func (r *usersRepository) Create(ctx context.Context, data *models.User) (*models.User, error) {
@@ -108,6 +132,32 @@ func (r *usersRepository) Delete(ctx context.Context, id string) (*models.User, 
 	return r.fetchUser(ctx, row)
 }
 
+func (r *usersRepository) getWhereList(filter *models.UserFilter) ([]goqu.Expression, error) {
+	whereList := make([]goqu.Expression, 0)
+	if filter == nil {
+		return whereList, nil
+	}
+
+	//email is not a column, he is a part of person
+	if filter.Email != nil {
+		whereList = append(whereList, goqu.Ex{
+			"email": filter.Email,
+		})
+	}
+	if filter.Login != nil {
+		whereList = append(whereList, goqu.Ex{
+			"login": filter.Login,
+		})
+	}
+	if filter.UserID != nil {
+		whereList = append(whereList, goqu.Ex{
+			"userID": filter.UserID,
+		})
+	}
+
+	return whereList, nil
+}
+
 func (r *usersRepository) fetchUser(ctx context.Context, row pgx.Row) (*models.User, error) {
 	roleIDs := make([]string, 0)
 	var user models.User
@@ -120,7 +170,7 @@ func (r *usersRepository) fetchUser(ctx context.Context, row pgx.Row) (*models.U
 	}
 
 	for _, roleID := range roleIDs {
-		role, err := r.rolesRep.GetByID(ctx, roleID)
+		role, err := r.roleRepository.GetByID(ctx, roleID)
 		if err != nil {
 			return nil, err
 		}

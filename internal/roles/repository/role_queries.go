@@ -1,4 +1,4 @@
-package roles
+package repository
 
 var (
 	createRole = `
