@@ -2,12 +2,18 @@ package main
 
 import (
 	"auth-service/internal/auth"
+	"auth-service/internal/common"
 	"auth-service/internal/grpc"
+	"auth-service/internal/models"
 	repository3 "auth-service/internal/roles/repository"
 	repository2 "auth-service/internal/users/repository"
 	"auth-service/internal/users/user_service"
 	"auth-service/pkg/config"
 	"auth-service/pkg/postgres"
+	"encoding/json"
+	"fmt"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"net"
 	"os"
@@ -16,6 +22,27 @@ import (
 )
 
 func main() {
+	perm := models.Permission{
+		PermissionID: uuid.New().String(),
+		Name:         "fds",
+		Description: common.LocalizedString{
+			"sfdfs": "FSDFSF",
+		},
+	}
+
+	json.Marshal(common.LocalizedString{
+		"sfdfs": "FSDFSF",
+	})
+	query := goqu.Insert("permissions").Rows(
+		perm,
+	)
+	fmt.Println(query.ToSQL())
+	q, _, err := query.ToSQL()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(q)
+
 	conf, _ := config.SetupConfiguration()
 	pg, _ := postgres.NewPG(conf)
 	logger := logrus.New()

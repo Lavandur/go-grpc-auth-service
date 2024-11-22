@@ -6,9 +6,14 @@ import (
 )
 
 type Permission struct {
-	PermissionID string                 `json:"roleID"`
-	Name         string                 `json:"roleName"`
-	Description  common.LocalizedString `json:"description"`
+	PermissionID string                 `json:"permissionID" db:"id"`
+	Name         string                 `json:"name" db:"name"`
+	Description  common.LocalizedString `json:"description" db:"description"`
+}
+
+type PermissionInput struct {
+	Name        string
+	Description common.LocalizedString
 }
 
 type Role struct {

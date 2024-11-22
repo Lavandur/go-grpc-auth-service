@@ -80,16 +80,16 @@ func (r roleRepository) GetList(ctx context.Context, pagination common.Paginatio
 		return nil, err
 	}
 
-	var roles []*models.Role
+	var roleList []*models.Role
 	for rows.Next() {
 		var role models.Role
 		err = rows.Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
-		roles = append(roles, &role)
+		roleList = append(roleList, &role)
 	}
-	return roles, nil
+	return roleList, nil
 }
 
 func (r roleRepository) Create(ctx context.Context, data *models.Role) (*models.Role, error) {
@@ -135,10 +135,9 @@ func (r roleRepository) Delete(ctx context.Context, id string) error {
 
 	err := r.db.QueryRow(ctx, deleteRole, args).Scan()
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return err
 		}
-		return err
 	}
 	return nil
 }

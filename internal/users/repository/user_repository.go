@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"auth-service/internal/common"
 	"auth-service/internal/models"
 	"auth-service/internal/roles"
 	"auth-service/internal/users"
@@ -37,7 +38,7 @@ func (r *usersRepository) GetByID(ctx context.Context, id string) (*models.User,
 	user, err := r.fetchUser(ctx, row)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
+			return nil, common.ErrNotFound
 		}
 		return nil, err
 	}
@@ -58,7 +59,7 @@ func (r *usersRepository) GetList(ctx context.Context, filter *models.UserFilter
 	defer rows.Close()
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
+			return nil, common.ErrNotFound
 		}
 		return nil, err
 	}
