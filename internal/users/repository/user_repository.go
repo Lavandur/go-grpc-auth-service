@@ -7,7 +7,7 @@ import (
 	"auth-service/internal/users"
 	"context"
 	"errors"
-	"github.com/doug-martin/goqu"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
@@ -53,7 +53,7 @@ func (r *usersRepository) GetList(ctx context.Context, filter *models.UserFilter
 		return nil, err
 	}
 
-	query, _, _ := goqu.From("users").Where(whereList...).ToSql()
+	query, _, _ := goqu.From("users").Where(whereList...).ToSQL()
 
 	rows, err := r.db.Query(ctx, query)
 	defer rows.Close()

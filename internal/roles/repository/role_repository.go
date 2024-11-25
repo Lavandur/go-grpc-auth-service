@@ -6,7 +6,7 @@ import (
 	"auth-service/internal/roles"
 	"context"
 	"errors"
-	"github.com/doug-martin/goqu"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
@@ -17,13 +17,20 @@ type roleRepository struct {
 	logger *logrus.Logger
 }
 
+func NewRoleRepository(db *pgxpool.Pool, logger *logrus.Logger) roles.RoleRepository {
+	return &roleRepository{
+		db:     db,
+		logger: logger,
+	}
+}
+
 func (r roleRepository) GetByName(ctx context.Context, name string) (*models.Role, error) {
 	r.logger.WithField("name", name).Debug("Get role by name")
 
 	query, args, err := goqu.From("roles").
 		Where(goqu.Ex{"name": name}).
 		Limit(1).
-		ToSql()
+		ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +49,6 @@ func (r roleRepository) GetByName(ctx context.Context, name string) (*models.Rol
 	return &role, nil
 }
 
-func NewRoleRepository(db *pgxpool.Pool, logger *logrus.Logger) roles.RoleRepository {
-	return &roleRepository{
-		db:     db,
-		logger: logger,
-	}
-}
-
 func (r roleRepository) GetByID(ctx context.Context, id string) (*models.Role, error) {
 	args := pgx.NamedArgs{
 		"roleID": id,
@@ -65,6 +65,8 @@ func (r roleRepository) GetByID(ctx context.Context, id string) (*models.Role, e
 }
 
 func (r roleRepository) GetList(ctx context.Context, pagination common.Pagination) ([]*models.Role, error) {
+	var roleList []*models.Role
+
 	args := pgx.NamedArgs{
 		"order_by": pagination.OrderBy,
 		"offset":   pagination.Offset,
@@ -75,12 +77,11 @@ func (r roleRepository) GetList(ctx context.Context, pagination common.Paginatio
 	defer rows.Close()
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
+			return roleList, nil
 		}
 		return nil, err
 	}
 
-	var roleList []*models.Role
 	for rows.Next() {
 		var role models.Role
 		err = rows.Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)

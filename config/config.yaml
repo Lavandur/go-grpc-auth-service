@@ -7,3 +7,4 @@ auth:
       user: "auth"
       password: "auth"
       sslmode: disable
+  log-level: "debug"

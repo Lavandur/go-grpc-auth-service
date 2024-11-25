@@ -5,7 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"sync"
-	"time"
 )
 
 var (
@@ -18,14 +17,17 @@ type Config struct {
 }
 
 type (
+	// Auth  Auth   `mapstructure:"auth"`
+
+	//Auth struct {
+	//	TokenKey      string        `mapstructure:"token_key"`
+	//	TokenDuration time.Duration `mapstructure:"token_duration"`
+	//	Address       string        `mapstructure:"address"`
+	//}
+
 	App struct {
-		Auth Auth `mapstructure:"auth"`
-		DB   DB   `mapstructure:"db"`
-	}
-	Auth struct {
-		TokenKey      string        `mapstructure:"token_key"`
-		TokenDuration time.Duration `mapstructure:"token_duration"`
-		Address       string        `mapstructure:"address"`
+		DB    DB     `mapstructure:"db"`
+		Level string `mapstructure:"log-level"`
 	}
 	DB struct {
 		PostgresQL `mapstructure:"postgresql"`

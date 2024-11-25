@@ -1,33 +1,51 @@
 package repository
 
 import (
+	"auth-service/internal/common"
 	"auth-service/internal/models"
 	"auth-service/internal/permissions"
 	"context"
 	"encoding/json"
 	"errors"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/sirupsen/logrus"
 )
 
 type permissionRepository struct {
-	db     *pgxpool.Pool
-	logger *logrus.Logger
+	db *pgxpool.Pool
 }
 
-func NewPermissionRepository(db *pgxpool.Pool, logger *logrus.Logger) permissions.PermissionRepository {
+func NewPermissionRepository(db *pgxpool.Pool) permissions.PermissionRepository {
 	return &permissionRepository{
-		db:     db,
-		logger: logger,
+		db: db,
 	}
 }
 
-func (p *permissionRepository) GetPermissions(ctx context.Context) ([]*models.Permission, error) {
-	p.logger.Debug("Getting permission-list", ctx)
+func (p *permissionRepository) GetPermissionByID(ctx context.Context, id string) (*models.Permission, error) {
 
+	query, _, err := goqu.
+		From("permissions").
+		Where(goqu.Ex{"id": id}).
+		ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	permission := &models.Permission{}
+	err = p.db.QueryRow(ctx, query).
+		Scan(&permission.PermissionID, &permission.Name, &permission.Description)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, common.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return permission, nil
+}
+
+func (p *permissionRepository) GetPermissions(ctx context.Context) ([]*models.Permission, error) {
 	query, _, err := goqu.From("permissions").ToSQL()
 	if err != nil {
 		return nil, err
@@ -39,45 +57,70 @@ func (p *permissionRepository) GetPermissions(ctx context.Context) ([]*models.Pe
 		return nil, err
 	}
 
-	permissionList, err := pgx.CollectRows(
-		rows, pgx.RowToStructByName[*models.Permission])
-	if err != nil {
-		return nil, err
+	var permissionList []*models.Permission
+	for rows.Next() {
+		permission := &models.Permission{}
+		err = rows.Scan(&permission.PermissionID, &permission.Name, &permission.Description)
+
+		if err != nil {
+			return permissionList, err
+		}
+
+		permissionList = append(permissionList, permission)
 	}
 
 	return permissionList, nil
 }
 
-func (p *permissionRepository) AddPermission(ctx context.Context, data *models.PermissionInput) (*models.Permission, error) {
-	p.logger.Debug("Adding permission", ctx)
-
-	perm := models.Permission{
-		PermissionID: uuid.New().String(),
-		Name:         data.Name,
-		Description:  data.Description,
-	}
-
+func (p *permissionRepository) AddPermission(ctx context.Context, data *models.Permission) (*models.Permission, error) {
 	description, err := json.Marshal(data.Description)
 	if err != nil {
 		return nil, err
 	}
-	query, _, err := goqu.Insert("permissions").Rows(
-		goqu.Record{"id": perm.PermissionID, "name": perm.Name, "description": description},
-	).ToSQL()
+
+	query, _, err := goqu.Insert("permissions").
+		Rows(goqu.Record{
+			"id":          data.PermissionID,
+			"name":        data.Name,
+			"description": description,
+		},
+		).
+		Returning(
+			"id",
+			"name",
+			"description").
+		ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
+	result := models.Permission{}
 	err = p.db.QueryRow(ctx, query).Scan(
-		&perm.PermissionID,
-		&perm.Name,
-		&perm.Description,
+		&result.PermissionID,
+		&result.Name,
+		&result.Description,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &perm, nil
+	return &result, nil
+}
+
+func (p *permissionRepository) DeletePermission(ctx context.Context, id string) (bool, error) {
+	query, _, err := goqu.Delete("permissions").Where(goqu.Ex{"id": id}).ToSQL()
+	if err != nil {
+		return false, err
+	}
+
+	err = p.db.QueryRow(ctx, query).Scan()
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return false, err
+		}
+	}
+
+	return true, nil
 }
 
 func (p *permissionRepository) GetRolePermissions(ctx context.Context, id string) ([]string, error) {
