@@ -1,40 +1,37 @@
-package auth
+package service
 
 import (
-	"github.com/pkg/errors"
 	"github.com/vk-rv/pvx"
+	"golang.org/x/crypto/ed25519"
 	"time"
 )
 
-type PasetoAuth struct {
+type PasetoAuth interface {
+	VerifyToken(token string) (*ServiceClaims, error)
+	NewToken(data TokenData) (string, error)
+}
+
+type pasetoAuth struct {
 	privateKey    *pvx.AsymSecretKey
 	publicKey     *pvx.AsymPublicKey
 	asymmetricKey []byte
 }
 
-const keySize = 32
+func NewPaseto(key []byte) (PasetoAuth, error) {
 
-var (
-	ErrInvalidSize = errors.Errorf("bad key size: it must be %d bytes", keySize)
-)
+	pubKey, privKey, _ := ed25519.GenerateKey(nil)
 
-func NewPaseto(key []byte) (*PasetoAuth, error) {
+	privateKey := pvx.NewAsymmetricSecretKey(privKey, pvx.Version4)
+	publicKey := pvx.NewAsymmetricPublicKey(pubKey, pvx.Version4)
 
-	if len(key) != keySize {
-		return nil, ErrInvalidSize
-	}
-
-	privateKey := pvx.NewAsymmetricSecretKey(key, pvx.Version4)
-	publicKey := pvx.NewAsymmetricPublicKey(key, pvx.Version4)
-
-	return &PasetoAuth{
+	return &pasetoAuth{
 		asymmetricKey: key,
 		privateKey:    privateKey,
 		publicKey:     publicKey,
 	}, nil
 }
 
-func (pa *PasetoAuth) NewToken(data TokenData) (string, error) {
+func (pa *pasetoAuth) NewToken(data TokenData) (string, error) {
 
 	serviceClaims := &ServiceClaims{}
 
@@ -59,10 +56,9 @@ func (pa *PasetoAuth) NewToken(data TokenData) (string, error) {
 	}
 
 	return authToken, nil
-
 }
 
-func (pa *PasetoAuth) VerifyToken(token string) (*ServiceClaims, error) {
+func (pa *pasetoAuth) VerifyToken(token string) (*ServiceClaims, error) {
 	pv4 := pvx.NewPV4Public()
 	tk := pv4.Verify(token, pa.publicKey)
 

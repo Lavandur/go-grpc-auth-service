@@ -96,18 +96,18 @@ func (mr *MockRoleRepositoryMockRecorder) GetByName(ctx, name interface{}) *gomo
 }
 
 // GetList mocks base method.
-func (m *MockRoleRepository) GetList(ctx context.Context, pagination common.Pagination) ([]*models.Role, error) {
+func (m *MockRoleRepository) GetList(ctx context.Context, filter *models.RoleFilter, pagination *common.Pagination) ([]*models.Role, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetList", ctx, pagination)
+	ret := m.ctrl.Call(m, "GetList", ctx, filter, pagination)
 	ret0, _ := ret[0].([]*models.Role)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetList indicates an expected call of GetList.
-func (mr *MockRoleRepositoryMockRecorder) GetList(ctx, pagination interface{}) *gomock.Call {
+func (mr *MockRoleRepositoryMockRecorder) GetList(ctx, filter, pagination interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockRoleRepository)(nil).GetList), ctx, pagination)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetList", reflect.TypeOf((*MockRoleRepository)(nil).GetList), ctx, filter, pagination)
 }
 
 // Update mocks base method.

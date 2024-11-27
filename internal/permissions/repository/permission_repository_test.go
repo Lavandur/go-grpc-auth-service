@@ -26,7 +26,7 @@ func Test_permissionRepository_GetRolePermissions(t *testing.T) {
 		id := "3422b448-2460-4fd2-9183-8000de6f8343"
 		expected := []string{"CAN_READ", "CAN_WRITE", "CAN_SEE"}
 
-		_, err := repository.SetRolePermissions(ctx, id, expected)
+		err := repository.SetRolePermissions(ctx, id, expected)
 		assert.NoError(t, err)
 
 		permissions, err := repository.GetRolePermissions(ctx, id)
@@ -49,7 +49,6 @@ func Test_permissionRepository_SetRolePermissions(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    bool
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
@@ -63,7 +62,6 @@ func Test_permissionRepository_SetRolePermissions(t *testing.T) {
 				id:          "3422b448-2460-4fd2-9183-8000de6f8343",
 				permissions: []string{"CAN_READ", "CAN_WRITE"},
 			},
-			want:    true,
 			wantErr: assert.NoError,
 		},
 	}
@@ -72,11 +70,10 @@ func Test_permissionRepository_SetRolePermissions(t *testing.T) {
 			p := &permissionRepository{
 				db: tt.fields.db,
 			}
-			got, err := p.SetRolePermissions(tt.args.ctx, tt.args.id, tt.args.permissions)
+			err := p.SetRolePermissions(tt.args.ctx, tt.args.id, tt.args.permissions)
 			if !tt.wantErr(t, err, fmt.Sprintf("SetRolePermissions(%v, %v)", tt.args.id, tt.args.permissions)) {
 				return
 			}
-			assert.Equalf(t, tt.want, got, "SetRolePermissions(%v, %v)", tt.args.id, tt.args.permissions)
 		})
 	}
 }
@@ -110,9 +107,8 @@ func Test_permissionRepository_OperationsWithPermissions(t *testing.T) {
 		_, err := repos.AddPermission(ctx, expected)
 		require.NoError(t, err)
 
-		success, err := repos.DeletePermission(ctx, expected.PermissionID)
+		err = repos.DeletePermission(ctx, expected.PermissionID)
 		require.NoError(t, err)
-		assert.Equal(t, true, success)
 	})
 
 	t.Run("Get permission by ID", func(t *testing.T) {

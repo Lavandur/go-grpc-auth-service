@@ -3,6 +3,13 @@ syntax = "proto3";
 package pb;
 option go_package = "internal/grpc/pb";
 
+import "common.proto";
+
+message UserListParams {
+  optional UserFilter filter = 1;
+  optional Pagination pagination = 2;
+}
+
 message UserFilter {
    optional ArrayLogin logins = 1;
    optional ArrayEmail emails = 2;

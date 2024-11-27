@@ -22,3 +22,8 @@ type Role struct {
 	Description common.LocalizedString `json:"description,omitempty"`
 	CreatedAt   time.Time              `json:"createdAt"`
 }
+
+type RoleFilter struct {
+	RoleID *[]string
+	Name   *[]string
+}

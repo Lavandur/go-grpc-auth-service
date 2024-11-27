@@ -76,10 +76,10 @@ func (p *permissionService) GetRolePermissions(ctx context.Context, id string) (
 func (p *permissionService) SetRolePermissions(ctx context.Context, id string, permission []string) (bool, error) {
 	p.logger.WithField("id", id).Debug("setting role permissions")
 
-	success, err := p.permissionRepository.SetRolePermissions(ctx, id, permission)
+	err := p.permissionRepository.SetRolePermissions(ctx, id, permission)
 	if err != nil {
 		return false, err
 	}
 
-	return success, nil
+	return true, nil
 }

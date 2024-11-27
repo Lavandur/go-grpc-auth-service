@@ -13,21 +13,18 @@ var (
 )
 
 type Config struct {
-	App `mapstructure:"auth"`
+	App `mapstructure:"app"`
 }
 
 type (
-	// Auth  Auth   `mapstructure:"auth"`
-
-	//Auth struct {
-	//	TokenKey      string        `mapstructure:"token_key"`
-	//	TokenDuration time.Duration `mapstructure:"token_duration"`
-	//	Address       string        `mapstructure:"address"`
-	//}
-
 	App struct {
+		Auth  Auth   `mapstructure:"auth"`
 		DB    DB     `mapstructure:"db"`
 		Level string `mapstructure:"log-level"`
+	}
+	Auth struct {
+		AccessTokenLifeTime  int `mapstructure:"access-life-time"`
+		RefreshTokenLifeTime int `mapstructure:"refresh-life-time"`
 	}
 	DB struct {
 		PostgresQL `mapstructure:"postgresql"`

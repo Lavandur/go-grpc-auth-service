@@ -192,27 +192,27 @@ func Test_usersRepository_Get(t *testing.T) {
 		pg := testingdb.NewWithIsolatedDatabase(t)
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
-		_, err := repos.Create(ctx, getUser())
-		require.NoError(t, err)
-		_, err = repos.Create(ctx, getUser())
+		for i := 0; i < 10; i++ {
+			_, err := repos.Create(ctx, getUser())
+			require.NoError(t, err)
+		}
+
+		someUser := getUser()
+		_, err := repos.Create(ctx, someUser)
 		require.NoError(t, err)
 
-		thirdUser := getUser()
-		_, err = repos.Create(ctx, thirdUser)
+		list, err := repos.GetList(ctx, nil, nil)
 		require.NoError(t, err)
+		assert.Len(t, list, 11)
 
-		list, err := repos.GetList(ctx, nil)
-		require.NoError(t, err)
-		assert.Len(t, list, 3)
-
-		logins := []string{thirdUser.Login}
+		logins := []string{someUser.Login}
 		filter := models.UserFilter{
 			UserID: nil,
 			Login:  &logins,
 			Email:  nil,
 		}
 
-		list, err = repos.GetList(ctx, &filter)
+		list, err = repos.GetList(ctx, &filter, nil)
 		require.NoError(t, err)
 		assert.Len(t, list, 1)
 	})

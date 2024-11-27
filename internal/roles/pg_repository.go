@@ -8,7 +8,7 @@ import (
 
 type RoleRepository interface {
 	GetByID(ctx context.Context, id string) (*models.Role, error)
-	GetList(ctx context.Context, pagination common.Pagination) ([]*models.Role, error)
+	GetList(ctx context.Context, filter *models.RoleFilter, pagination *common.Pagination) ([]*models.Role, error)
 	GetByName(ctx context.Context, name string) (*models.Role, error)
 
 	Create(ctx context.Context, data *models.Role) (*models.Role, error)

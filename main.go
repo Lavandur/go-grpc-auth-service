@@ -5,6 +5,7 @@ import (
 	"auth-service/internal/common"
 	"auth-service/internal/grpc"
 	repository3 "auth-service/internal/roles/repository"
+	"auth-service/internal/service"
 	repository2 "auth-service/internal/users/repository"
 	"auth-service/internal/users/user_service"
 	"auth-service/pkg/config"
@@ -39,7 +40,14 @@ func main() {
 	userRepos := repository2.NewUsersRepository(pg, rolesRepos, logger)
 
 	userService := user_service.NewUserService(userRepos, rolesRepos, logger)
-	authServ := auth.NewAuthService(userService, nil, logger)
+	key := []byte("1234567890abcdefghijklmnoqrstuvw")
+	paseto, err := service.NewPaseto(key)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	authS := service.NewAuthServiceImpl(paseto, userService, logger)
+
+	authServ := auth.NewAuthService(authS, userService, logger)
 	server := grpc.NewGRPCServer(authServ)
 
 	l, _ := net.Listen("tcp", ":8080")

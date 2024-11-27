@@ -1,13 +1,13 @@
 package user_service
 
 import (
+	"auth-service/internal/common"
 	"auth-service/internal/models"
 	"auth-service/internal/roles"
 	"auth-service/internal/users"
 	"context"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -41,10 +41,23 @@ func (u *userService) GetByID(ctx context.Context, id string) (*models.User, err
 	return user, nil
 }
 
-func (u *userService) GetList(ctx context.Context, filter *models.UserFilter) ([]*models.User, error) {
+func (u *userService) GetByLogin(ctx context.Context, login string) (*models.User, error) {
+	u.logger.Infof("Getting user by login: %s", login)
+
+	logins := []string{login}
+	filter := &models.UserFilter{Login: &logins}
+	user, err := u.userRepository.GetList(ctx, filter, nil)
+	if err != nil || len(user) == 0 {
+		return nil, err
+	}
+
+	return user[0], nil
+}
+
+func (u *userService) GetList(ctx context.Context, filter *models.UserFilter, pagination *common.Pagination) ([]*models.User, error) {
 	u.logger.Infof("Getting users by filter: %+v", filter)
 
-	listUsers, err := u.userRepository.GetList(ctx, filter)
+	listUsers, err := u.userRepository.GetList(ctx, filter, pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -53,25 +66,25 @@ func (u *userService) GetList(ctx context.Context, filter *models.UserFilter) ([
 }
 
 func (u *userService) Create(ctx context.Context, data *models.UserInput) (*models.User, error) {
-	uid, err := uuid.NewV7()
+
+	userID, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
 
-	userRoles := make([]*models.Role, 0)
-	for _, id := range data.RoleIDs {
-		role, _ := u.roleRepository.GetByID(ctx, id)
-		/*if err != nil {
-			return nil, err
-		}*/
-		userRoles = append(userRoles, role)
+	roleFilter := &models.RoleFilter{
+		RoleID: &data.RoleIDs,
+	}
+	userRoles, err := u.roleRepository.GetList(ctx, roleFilter, nil)
+	if err != nil {
+		return nil, err
 	}
 
 	user := &models.User{
-		UserID:         uid.String(),
+		UserID:         userID.String(),
 		Login:          data.Login,
 		VisibleID:      data.Login,
-		HashedPassword: u.hashPassword(data.Password),
+		HashedPassword: common.HashPassword(data.Password),
 		Person: models.Person{
 			Firstname: data.Firstname,
 			Lastname:  data.Lastname,
@@ -94,29 +107,38 @@ func (u *userService) Create(ctx context.Context, data *models.UserInput) (*mode
 	return res, nil
 }
 
-func (u *userService) Login(ctx context.Context, login, password string) (bool, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (u *userService) Update(ctx context.Context, id string, data *models.UserUpdateInput) (*models.User, error) {
-	//TODO implement me
-	panic("implement me")
+	u.logger.Debugf("Updating user by ID: %s", id)
+
+	user, err := u.userRepository.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	data.ToUpdatedModel(user)
+
+	filter := &models.RoleFilter{
+		RoleID: &data.RoleIDs,
+	}
+
+	roleList, err := u.roleRepository.GetList(ctx, filter, nil)
+	user.Roles = roleList
+
+	result, err := u.userRepository.Update(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (u *userService) Delete(ctx context.Context, id string) (*models.User, error) {
-	//TODO implement me
-	panic("implement me")
-}
+	u.logger.Debugf("Deleting user by ID: %s", id)
 
-func (u *userService) hashPassword(password string) string {
-	bytes, _ := bcrypt.GenerateFromPassword([]byte(password), 6)
+	user, err := u.userRepository.Delete(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 
-	return string(bytes)
-}
-
-func (u *userService) checkPasswordHash(password string, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-
-	return err == nil
+	return user, nil
 }

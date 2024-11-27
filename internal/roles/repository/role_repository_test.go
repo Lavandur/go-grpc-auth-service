@@ -5,6 +5,7 @@ import (
 	"auth-service/internal/models"
 	"auth-service/testingdb"
 	"context"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -181,28 +182,33 @@ func Test_roleRepository_Getting(t *testing.T) {
 		pg := testingdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
-		first := models.Role{
-			RoleID:      "3422b448-2460-4fd2-9183-8000de6f8343",
-			Name:        "some_name",
-			Description: map[string]string{"ru": "ADMIN"},
-			CreatedAt:   time.Now().UTC().Truncate(time.Millisecond),
+		for i := 0; i < 10; i++ {
+			role := &models.Role{
+				RoleID:      uuid.New().String(),
+				Name:        "some_name",
+				Description: map[string]string{"ru": "ADMIN"},
+				CreatedAt:   time.Now().UTC().Truncate(time.Millisecond),
+			}
+
+			_, err := repos.Create(ctx, role)
+			assert.NoError(t, err)
 		}
-		pagination := common.Pagination{
-			OrderBy: "created_at",
-			Offset:  0,
-			Size:    10,
+
+		orderBy := "created_at"
+		var offset uint = 5
+		var limit uint = 10
+		pagination := &common.Pagination{
+			OrderBy: &orderBy,
+			Offset:  &offset,
+			Size:    &limit,
 		}
 
-		_, err := repos.Create(ctx, &first)
+		got, err := repos.GetList(ctx, nil, nil)
 		assert.NoError(t, err)
+		assert.Len(t, got, 10)
 
-		first.RoleID = "3422b448-2460-4fd2-9183-8000de6f8342"
-		first.CreatedAt = time.Now().UTC().Truncate(time.Millisecond)
-		_, err = repos.Create(ctx, &first)
+		got, err = repos.GetList(ctx, nil, pagination)
 		assert.NoError(t, err)
-
-		got, err := repos.GetList(ctx, pagination)
-		assert.NoError(t, err)
-		assert.Len(t, got, 3)
+		assert.Len(t, got, 5)
 	})
 }

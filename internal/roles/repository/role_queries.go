@@ -20,11 +20,7 @@ var (
 		SELECT id, name, description, created_at FROM roles
 		WHERE id = @roleID
 	`
-	getRoles = `
-		SELECT * FROM roles
-		ORDER BY @order_by 
-		OFFSET @offset LIMIT @limit;
-	`
+
 	getPermissionsByRole = `
 		SELECT * FROM role_permissions
 		WHERE id = @roleID;

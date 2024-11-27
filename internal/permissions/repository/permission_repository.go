@@ -107,20 +107,20 @@ func (p *permissionRepository) AddPermission(ctx context.Context, data *models.P
 	return &result, nil
 }
 
-func (p *permissionRepository) DeletePermission(ctx context.Context, id string) (bool, error) {
+func (p *permissionRepository) DeletePermission(ctx context.Context, id string) error {
 	query, _, err := goqu.Delete("permissions").Where(goqu.Ex{"id": id}).ToSQL()
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	err = p.db.QueryRow(ctx, query).Scan()
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
-			return false, err
+			return err
 		}
 	}
 
-	return true, nil
+	return nil
 }
 
 func (p *permissionRepository) GetRolePermissions(ctx context.Context, id string) ([]string, error) {
@@ -133,7 +133,7 @@ func (p *permissionRepository) GetRolePermissions(ctx context.Context, id string
 	return p.fetchPermissions(row)
 }
 
-func (p *permissionRepository) SetRolePermissions(ctx context.Context, id string, permissions []string) (bool, error) {
+func (p *permissionRepository) SetRolePermissions(ctx context.Context, id string, permissions []string) error {
 	args := pgx.NamedArgs{
 		"roleID":     id,
 		"permission": permissions,
@@ -141,14 +141,14 @@ func (p *permissionRepository) SetRolePermissions(ctx context.Context, id string
 
 	err := p.db.QueryRow(ctx, clearPermission, args).Scan()
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return false, err
+		return err
 	}
 
 	err = p.db.QueryRow(ctx, setPermissions, args).Scan()
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (p *permissionRepository) fetchPermissions(row pgx.Row) ([]string, error) {

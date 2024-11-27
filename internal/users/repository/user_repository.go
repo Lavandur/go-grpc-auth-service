@@ -20,7 +20,11 @@ type usersRepository struct {
 	logger         *logrus.Logger
 }
 
-func NewUsersRepository(pool *pgxpool.Pool, rolesRepository roles.RoleRepository, logger *logrus.Logger) users.UserRepository {
+func NewUsersRepository(
+	pool *pgxpool.Pool,
+	rolesRepository roles.RoleRepository,
+	logger *logrus.Logger,
+) users.UserRepository {
 	return &usersRepository{
 		db:             pool,
 		roleRepository: rolesRepository,
@@ -45,15 +49,21 @@ func (r *usersRepository) GetByID(ctx context.Context, id string) (*models.User,
 	return user, nil
 }
 
-func (r *usersRepository) GetList(ctx context.Context, filter *models.UserFilter) ([]*models.User, error) {
-
+func (r *usersRepository) GetList(
+	ctx context.Context,
+	filter *models.UserFilter,
+	pagination *common.Pagination,
+) ([]*models.User, error) {
 	usersList := make([]*models.User, 0)
-	whereList, err := r.getWhereList(filter)
-	if err != nil {
-		return nil, err
-	}
 
-	query, _, _ := goqu.From("users").Where(whereList...).ToSQL()
+	whereList := r.getWhereList(filter)
+	query, _, err := common.GetPagination(
+		goqu.From("users").Where(whereList...),
+		pagination,
+	).ToSQL()
+	if err != nil {
+		return nil, common.ErrBuildQuery
+	}
 
 	rows, err := r.db.Query(ctx, query)
 	defer rows.Close()
@@ -133,10 +143,10 @@ func (r *usersRepository) Delete(ctx context.Context, id string) (*models.User, 
 	return r.fetchUser(ctx, row)
 }
 
-func (r *usersRepository) getWhereList(filter *models.UserFilter) ([]goqu.Expression, error) {
+func (r *usersRepository) getWhereList(filter *models.UserFilter) []goqu.Expression {
 	whereList := make([]goqu.Expression, 0)
 	if filter == nil {
-		return whereList, nil
+		return whereList
 	}
 
 	//email is not a column, he is a part of person
@@ -156,7 +166,7 @@ func (r *usersRepository) getWhereList(filter *models.UserFilter) ([]goqu.Expres
 		})
 	}
 
-	return whereList, nil
+	return whereList
 }
 
 func (r *usersRepository) fetchUser(ctx context.Context, row pgx.Row) (*models.User, error) {

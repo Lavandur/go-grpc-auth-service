@@ -24,7 +24,7 @@ func NewRoleRepository(db *pgxpool.Pool, logger *logrus.Logger) roles.RoleReposi
 	}
 }
 
-func (r roleRepository) GetByName(ctx context.Context, name string) (*models.Role, error) {
+func (r *roleRepository) GetByName(ctx context.Context, name string) (*models.Role, error) {
 	r.logger.WithField("name", name).Debug("Get role by name")
 
 	query, args, err := goqu.From("roles").
@@ -49,7 +49,7 @@ func (r roleRepository) GetByName(ctx context.Context, name string) (*models.Rol
 	return &role, nil
 }
 
-func (r roleRepository) GetByID(ctx context.Context, id string) (*models.Role, error) {
+func (r *roleRepository) GetByID(ctx context.Context, id string) (*models.Role, error) {
 	args := pgx.NamedArgs{
 		"roleID": id,
 	}
@@ -64,16 +64,21 @@ func (r roleRepository) GetByID(ctx context.Context, id string) (*models.Role, e
 	return &role, nil
 }
 
-func (r roleRepository) GetList(ctx context.Context, pagination common.Pagination) ([]*models.Role, error) {
-	var roleList []*models.Role
+func (r *roleRepository) GetList(
+	ctx context.Context,
+	filter *models.RoleFilter,
+	pagination *common.Pagination,
+) ([]*models.Role, error) {
 
-	args := pgx.NamedArgs{
-		"order_by": pagination.OrderBy,
-		"offset":   pagination.Offset,
-		"limit":    pagination.Size,
-	}
+	roleList := make([]*models.Role, 0)
 
-	rows, err := r.db.Query(ctx, getRoles, args)
+	whereList := r.getWhereList(filter)
+	query, _, err := common.GetPagination(
+		goqu.From("roles").Where(whereList...),
+		pagination,
+	).ToSQL()
+
+	rows, err := r.db.Query(ctx, query)
 	defer rows.Close()
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -84,7 +89,11 @@ func (r roleRepository) GetList(ctx context.Context, pagination common.Paginatio
 
 	for rows.Next() {
 		var role models.Role
-		err = rows.Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)
+		err = rows.Scan(
+			&role.RoleID,
+			&role.Name,
+			&role.Description,
+			&role.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +102,7 @@ func (r roleRepository) GetList(ctx context.Context, pagination common.Paginatio
 	return roleList, nil
 }
 
-func (r roleRepository) Create(ctx context.Context, data *models.Role) (*models.Role, error) {
+func (r *roleRepository) Create(ctx context.Context, data *models.Role) (*models.Role, error) {
 	args := pgx.NamedArgs{
 		"roleID":      data.RoleID,
 		"name":        data.Name,
@@ -111,7 +120,7 @@ func (r roleRepository) Create(ctx context.Context, data *models.Role) (*models.
 	return &role, nil
 }
 
-func (r roleRepository) Update(ctx context.Context, data *models.Role) (*models.Role, error) {
+func (r *roleRepository) Update(ctx context.Context, data *models.Role) (*models.Role, error) {
 	args := pgx.NamedArgs{
 		"roleID":      data.RoleID,
 		"name":        data.Name,
@@ -129,7 +138,7 @@ func (r roleRepository) Update(ctx context.Context, data *models.Role) (*models.
 	return &role, nil
 }
 
-func (r roleRepository) Delete(ctx context.Context, id string) error {
+func (r *roleRepository) Delete(ctx context.Context, id string) error {
 	args := pgx.NamedArgs{
 		"roleID": id,
 	}
@@ -141,4 +150,24 @@ func (r roleRepository) Delete(ctx context.Context, id string) error {
 		}
 	}
 	return nil
+}
+
+func (r *roleRepository) getWhereList(filter *models.RoleFilter) []goqu.Expression {
+	whereList := make([]goqu.Expression, 0)
+	if filter == nil {
+		return whereList
+	}
+
+	if filter.RoleID != nil {
+		whereList = append(whereList, goqu.Ex{
+			"id": filter.RoleID,
+		})
+	}
+	if filter.Name != nil {
+		whereList = append(whereList, goqu.Ex{
+			"name": filter.Name,
+		})
+	}
+
+	return whereList
 }

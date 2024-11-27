@@ -21,7 +21,10 @@ const (
 func SetupLogger(cfg *config.Config) *logrus.Logger {
 	onceLog.Do(func() {
 
-		env := cfg.Level
+		env := envDebug
+		if cfg != nil {
+			env = cfg.Level
+		}
 
 		logger := logrus.New()
 		logger.SetOutput(os.Stdout)
@@ -39,6 +42,10 @@ func SetupLogger(cfg *config.Config) *logrus.Logger {
 			logger.SetLevel(logrus.InfoLevel)
 			logger.SetFormatter(&logrus.TextFormatter{})
 			logger.SetReportCaller(false)
+		default:
+			logger.SetLevel(logrus.DebugLevel)
+			logger.SetFormatter(&logrus.JSONFormatter{})
+			logger.SetReportCaller(true)
 		}
 
 		instance = logger
