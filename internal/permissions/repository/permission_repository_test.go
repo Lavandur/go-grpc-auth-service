@@ -155,7 +155,7 @@ func Test_permissionRepository_OperationsWithPermissions(t *testing.T) {
 func getPermission() *models.Permission {
 	return &models.Permission{
 		PermissionID: uuid.New().String(),
-		Name:         uuid.New().String(),
+		Title:        uuid.New().String(),
 		Description: common.LocalizedString{
 			"en": "CAN_READ_ROLES",
 		},

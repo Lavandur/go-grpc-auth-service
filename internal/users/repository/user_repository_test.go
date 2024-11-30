@@ -17,12 +17,12 @@ import (
 )
 
 func getRoleRepMock(ctrl *gomock.Controller) roles.RoleRepository {
-	roleRep := mock.NewMockRoleRepository(ctrl)
+	roleRep := roles_mock.NewMockRoleRepository(ctrl)
 	roleRep.EXPECT().
 		GetByID(gomock.Any(), gomock.Any()).
 		Return(&models.Role{
 			RoleID:      "",
-			Name:        "",
+			Title:       "",
 			Description: nil,
 			CreatedAt:   time.Time{},
 		}, nil).AnyTimes()
@@ -233,7 +233,7 @@ func getUser() *models.User {
 		},
 		Roles: []*models.Role{{
 			RoleID:      "",
-			Name:        "",
+			Title:       "",
 			Description: nil,
 			CreatedAt:   time.Time{}.UTC(),
 		}},

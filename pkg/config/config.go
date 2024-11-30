@@ -18,9 +18,10 @@ type Config struct {
 
 type (
 	App struct {
-		Auth  Auth   `mapstructure:"auth"`
-		DB    DB     `mapstructure:"db"`
-		Level string `mapstructure:"log-level"`
+		Auth            Auth   `mapstructure:"auth"`
+		DB              DB     `mapstructure:"db"`
+		Level           string `mapstructure:"log-level"`
+		DefaultRoleName string `mapstructure:"default-role"`
 	}
 	Auth struct {
 		AccessTokenLifeTime  int `mapstructure:"access-life-time"`

@@ -13,25 +13,25 @@ import (
 
 type userService struct {
 	userRepository users.UserRepository
-	roleRepository roles.RoleRepository
+	roleService    roles.RoleService
 
 	logger *logrus.Logger
 }
 
 func NewUserService(
 	userRepository users.UserRepository,
-	roleRepository roles.RoleRepository,
+	roleService roles.RoleService,
 	logger *logrus.Logger,
 ) users.UserService {
 	return &userService{
 		userRepository: userRepository,
-		roleRepository: roleRepository,
+		roleService:    roleService,
 		logger:         logger,
 	}
 }
 
 func (u *userService) GetByID(ctx context.Context, id string) (*models.User, error) {
-	u.logger.Infof("Getting user by ID: %s", id)
+	u.logger.Infof("Get user by ID: %s", id)
 
 	user, err := u.userRepository.GetByID(ctx, id)
 	if err != nil {
@@ -42,20 +42,18 @@ func (u *userService) GetByID(ctx context.Context, id string) (*models.User, err
 }
 
 func (u *userService) GetByLogin(ctx context.Context, login string) (*models.User, error) {
-	u.logger.Infof("Getting user by login: %s", login)
+	u.logger.Infof("Get user by login: %s", login)
 
-	logins := []string{login}
-	filter := &models.UserFilter{Login: &logins}
-	user, err := u.userRepository.GetList(ctx, filter, nil)
-	if err != nil || len(user) == 0 {
+	user, err := u.userRepository.GetByLogin(ctx, login)
+	if err != nil {
 		return nil, err
 	}
 
-	return user[0], nil
+	return user, nil
 }
 
 func (u *userService) GetList(ctx context.Context, filter *models.UserFilter, pagination *common.Pagination) ([]*models.User, error) {
-	u.logger.Infof("Getting users by filter: %+v", filter)
+	u.logger.Infof("Get users by filter: %+v", filter)
 
 	listUsers, err := u.userRepository.GetList(ctx, filter, pagination)
 	if err != nil {
@@ -75,7 +73,7 @@ func (u *userService) Create(ctx context.Context, data *models.UserInput) (*mode
 	roleFilter := &models.RoleFilter{
 		RoleID: &data.RoleIDs,
 	}
-	userRoles, err := u.roleRepository.GetList(ctx, roleFilter, nil)
+	userRoles, err := u.roleService.GetList(ctx, roleFilter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +106,7 @@ func (u *userService) Create(ctx context.Context, data *models.UserInput) (*mode
 }
 
 func (u *userService) Update(ctx context.Context, id string, data *models.UserUpdateInput) (*models.User, error) {
-	u.logger.Debugf("Updating user by ID: %s", id)
+	u.logger.Debugf("Update user by ID: %s", id)
 
 	user, err := u.userRepository.GetByID(ctx, id)
 	if err != nil {
@@ -121,7 +119,7 @@ func (u *userService) Update(ctx context.Context, id string, data *models.UserUp
 		RoleID: &data.RoleIDs,
 	}
 
-	roleList, err := u.roleRepository.GetList(ctx, filter, nil)
+	roleList, err := u.roleService.GetList(ctx, filter, nil)
 	user.Roles = roleList
 
 	result, err := u.userRepository.Update(ctx, user)
@@ -133,7 +131,7 @@ func (u *userService) Update(ctx context.Context, id string, data *models.UserUp
 }
 
 func (u *userService) Delete(ctx context.Context, id string) (*models.User, error) {
-	u.logger.Debugf("Deleting user by ID: %s", id)
+	u.logger.Debugf("Delete user by ID: %s", id)
 
 	user, err := u.userRepository.Delete(ctx, id)
 	if err != nil {

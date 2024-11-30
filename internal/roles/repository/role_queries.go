@@ -2,9 +2,9 @@ package repository
 
 var (
 	createRole = `
-		INSERT INTO roles (id, name, description, created_at)
-		VALUES (@roleID, @name, @description, @createdAt)
-		RETURNING id, name, description, created_at;
+		INSERT INTO roles (id, title, description, created_at)
+		VALUES (@roleID, @title, @description, @createdAt)
+		RETURNING id, title, description, created_at;
 	`
 	deleteRole = `
 		DELETE FROM roles
@@ -12,12 +12,12 @@ var (
 	`
 	updateRole = `
 		UPDATE roles
-		SET name = @name, description = @description
+		SET title = @title, description = @description
 		WHERE id = @roleID
-		RETURNING id, name, description, created_at;
+		RETURNING id, title, description, created_at;
 	`
 	getRoleByID = `
-		SELECT id, name, description, created_at FROM roles
+		SELECT id, title, description, created_at FROM roles
 		WHERE id = @roleID
 	`
 

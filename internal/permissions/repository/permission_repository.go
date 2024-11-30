@@ -34,7 +34,7 @@ func (p *permissionRepository) GetPermissionByID(ctx context.Context, id string)
 
 	permission := &models.Permission{}
 	err = p.db.QueryRow(ctx, query).
-		Scan(&permission.PermissionID, &permission.Name, &permission.Description)
+		Scan(&permission.PermissionID, &permission.Title, &permission.Description)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, common.ErrNotFound
@@ -60,7 +60,7 @@ func (p *permissionRepository) GetPermissions(ctx context.Context) ([]*models.Pe
 	var permissionList []*models.Permission
 	for rows.Next() {
 		permission := &models.Permission{}
-		err = rows.Scan(&permission.PermissionID, &permission.Name, &permission.Description)
+		err = rows.Scan(&permission.PermissionID, &permission.Title, &permission.Description)
 
 		if err != nil {
 			return permissionList, err
@@ -81,13 +81,13 @@ func (p *permissionRepository) AddPermission(ctx context.Context, data *models.P
 	query, _, err := goqu.Insert("permissions").
 		Rows(goqu.Record{
 			"id":          data.PermissionID,
-			"name":        data.Name,
+			"title":       data.Title,
 			"description": description,
 		},
 		).
 		Returning(
 			"id",
-			"name",
+			"title",
 			"description").
 		ToSQL()
 	if err != nil {
@@ -97,7 +97,7 @@ func (p *permissionRepository) AddPermission(ctx context.Context, data *models.P
 	result := models.Permission{}
 	err = p.db.QueryRow(ctx, query).Scan(
 		&result.PermissionID,
-		&result.Name,
+		&result.Title,
 		&result.Description,
 	)
 	if err != nil {

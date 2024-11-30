@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package users_pb;
+option go_package = "auth-service/internal/grpc/pb/users_pb";
+
+import "common.proto";
+
+
+message User {
+  common.ID id = 1;
+  string login = 2;
+  // personal information
+  message Person {
+    string firstname = 1;
+    string lastname = 2;
+    string email = 3;
+    string gender = 4;
+  };
+
+  Person person = 3;
+}
+
+message ArrayUser {
+  repeated User user = 1;
+}

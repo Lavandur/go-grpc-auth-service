@@ -17,7 +17,11 @@ type roleRepository struct {
 	logger *logrus.Logger
 }
 
-func NewRoleRepository(db *pgxpool.Pool, logger *logrus.Logger) roles.RoleRepository {
+func NewRoleRepository(
+	db *pgxpool.Pool,
+	logger *logrus.Logger,
+) roles.RoleRepository {
+
 	return &roleRepository{
 		db:     db,
 		logger: logger,
@@ -25,10 +29,10 @@ func NewRoleRepository(db *pgxpool.Pool, logger *logrus.Logger) roles.RoleReposi
 }
 
 func (r *roleRepository) GetByName(ctx context.Context, name string) (*models.Role, error) {
-	r.logger.WithField("name", name).Debug("Get role by name")
+	r.logger.WithField("title", name).Debug("Get role by name")
 
 	query, args, err := goqu.From("roles").
-		Where(goqu.Ex{"name": name}).
+		Where(goqu.Ex{"title": name}).
 		Limit(1).
 		ToSQL()
 	if err != nil {
@@ -38,10 +42,10 @@ func (r *roleRepository) GetByName(ctx context.Context, name string) (*models.Ro
 	var role models.Role
 	err = r.db.
 		QueryRow(ctx, query, args...).
-		Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)
+		Scan(&role.RoleID, &role.Title, &role.Description, &role.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, err
+			return nil, common.ErrNotFound
 		}
 		return nil, err
 	}
@@ -57,7 +61,7 @@ func (r *roleRepository) GetByID(ctx context.Context, id string) (*models.Role, 
 	var role models.Role
 	err := r.db.
 		QueryRow(ctx, getRoleByID, args).
-		Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)
+		Scan(&role.RoleID, &role.Title, &role.Description, &role.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +95,7 @@ func (r *roleRepository) GetList(
 		var role models.Role
 		err = rows.Scan(
 			&role.RoleID,
-			&role.Name,
+			&role.Title,
 			&role.Description,
 			&role.CreatedAt)
 		if err != nil {
@@ -105,7 +109,7 @@ func (r *roleRepository) GetList(
 func (r *roleRepository) Create(ctx context.Context, data *models.Role) (*models.Role, error) {
 	args := pgx.NamedArgs{
 		"roleID":      data.RoleID,
-		"name":        data.Name,
+		"title":       data.Title,
 		"description": data.Description,
 		"createdAt":   data.CreatedAt,
 	}
@@ -113,7 +117,7 @@ func (r *roleRepository) Create(ctx context.Context, data *models.Role) (*models
 	var role models.Role
 	err := r.db.
 		QueryRow(ctx, createRole, args).
-		Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)
+		Scan(&role.RoleID, &role.Title, &role.Description, &role.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +127,7 @@ func (r *roleRepository) Create(ctx context.Context, data *models.Role) (*models
 func (r *roleRepository) Update(ctx context.Context, data *models.Role) (*models.Role, error) {
 	args := pgx.NamedArgs{
 		"roleID":      data.RoleID,
-		"name":        data.Name,
+		"title":       data.Title,
 		"description": data.Description,
 		"createdAt":   data.CreatedAt,
 	}
@@ -131,7 +135,7 @@ func (r *roleRepository) Update(ctx context.Context, data *models.Role) (*models
 	var role models.Role
 	err := r.db.
 		QueryRow(ctx, updateRole, args).
-		Scan(&role.RoleID, &role.Name, &role.Description, &role.CreatedAt)
+		Scan(&role.RoleID, &role.Title, &role.Description, &role.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -163,9 +167,9 @@ func (r *roleRepository) getWhereList(filter *models.RoleFilter) []goqu.Expressi
 			"id": filter.RoleID,
 		})
 	}
-	if filter.Name != nil {
+	if filter.Title != nil {
 		whereList = append(whereList, goqu.Ex{
-			"name": filter.Name,
+			"title": filter.Title,
 		})
 	}
 

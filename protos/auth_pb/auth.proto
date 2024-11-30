@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package auth_pb;
+option go_package = "auth-service/internal/grpc/pb/auth_pb";
+
+import "auth_pb/token.proto";
+
+
+service AuthService {
+  rpc Login(LoginRequest) returns (AuthResponse) {};
+  rpc RefreshPublicToken(RefreshTokenRequest) returns (AuthResponse) {};
+}

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package common;
+option go_package = "auth-service/internal/grpc/pb";
+
+message Pagination {
+  optional string orderBy = 1;
+  optional uint32 offset = 2;
+  optional uint32 size = 3;
+}
+
+message Empty {}
+
+message ID {
+  string id = 1;
+}
+
+message ArrayString {
+  repeated string value = 1;
+}
+
+message IsSuccess {
+  bool value = 1;
+}

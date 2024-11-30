@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package users_pb;
+option go_package = "auth-service/internal/grpc/pb/users_pb";
+
+import "common.proto";
+
+message UserListParams {
+  optional UserFilter filter = 1;
+  optional common.Pagination pagination = 2;
+}
+
+message UserFilter {
+   optional common.ArrayString login = 1;
+   optional common.ArrayString email = 2;
+   optional common.ArrayString userIDs = 3;
+}

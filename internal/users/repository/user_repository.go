@@ -49,6 +49,27 @@ func (r *usersRepository) GetByID(ctx context.Context, id string) (*models.User,
 	return user, nil
 }
 
+func (r *usersRepository) GetByLogin(ctx context.Context, login string) (*models.User, error) {
+	query, _, err := goqu.
+		From("users").
+		Where(goqu.Ex{"login": login}).
+		ToSQL()
+	if err != nil {
+		return nil, common.ErrBuildQuery
+	}
+
+	row := r.db.QueryRow(ctx, query)
+	user, err := r.fetchUser(ctx, row)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, common.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *usersRepository) GetList(
 	ctx context.Context,
 	filter *models.UserFilter,

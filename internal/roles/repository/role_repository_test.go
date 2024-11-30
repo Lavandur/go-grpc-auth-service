@@ -21,7 +21,7 @@ func Test_roleRepository_Create(t *testing.T) {
 
 	role := models.Role{
 		RoleID:      "3422b448-2460-4fd2-9183-8000de6f8343",
-		Name:        "some_name",
+		Title:       "some_name",
 		Description: map[string]string{"ru": "ADMIN"},
 		CreatedAt:   time.Now().UTC().Truncate(time.Millisecond),
 	}
@@ -57,7 +57,7 @@ func Test_roleRepository_Update(t *testing.T) {
 
 	role := models.Role{
 		RoleID:      "3422b448-2460-4fd2-9183-8000de6f8343",
-		Name:        "some_name",
+		Title:       "some_name",
 		Description: map[string]string{"ru": "ADMIN"},
 	}
 
@@ -71,10 +71,10 @@ func Test_roleRepository_Update(t *testing.T) {
 		_, err := repos.Create(ctx, &role)
 		assert.NoError(t, err)
 
-		role.Name = "some name"
+		role.Title = "some name"
 		updated, err := repos.Update(ctx, &role)
 		assert.NoError(t, err)
-		assert.NotEqual(t, &role.Name, updated.Name)
+		assert.NotEqual(t, &role.Title, updated.Title)
 	})
 
 	t.Run("Update role with unknown id", func(t *testing.T) {
@@ -94,7 +94,7 @@ func Test_roleRepository_Delete(t *testing.T) {
 
 	role := models.Role{
 		RoleID:      "3422b448-2460-4fd2-9183-8000de6f8343",
-		Name:        "some_name",
+		Title:       "some_name",
 		Description: map[string]string{"ru": "ADMIN"},
 	}
 
@@ -129,7 +129,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 
 	role := models.Role{
 		RoleID:      "3422b448-2460-4fd2-9183-8000de6f8343",
-		Name:        "some_name",
+		Title:       "some_name",
 		Description: map[string]string{"ru": "ADMIN"},
 		CreatedAt:   time.Now().UTC().Truncate(time.Millisecond),
 	}
@@ -170,7 +170,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 		_, err := repos.Create(ctx, &role)
 		assert.NoError(t, err)
 
-		got, err := repos.GetByName(ctx, role.Name)
+		got, err := repos.GetByName(ctx, role.Title)
 		assert.NoError(t, err)
 		assert.Equal(t, &role, got)
 	})
@@ -185,7 +185,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			role := &models.Role{
 				RoleID:      uuid.New().String(),
-				Name:        "some_name",
+				Title:       "some_name",
 				Description: map[string]string{"ru": "ADMIN"},
 				CreatedAt:   time.Now().UTC().Truncate(time.Millisecond),
 			}

@@ -1,4 +1,4 @@
-package service
+package models
 
 import (
 	"github.com/vk-rv/pvx"

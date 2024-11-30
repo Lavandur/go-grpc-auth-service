@@ -1,23 +1,23 @@
-package service
+package auth_service
 
 import (
+	"auth-service/internal/models"
 	"github.com/vk-rv/pvx"
 	"golang.org/x/crypto/ed25519"
 	"time"
 )
 
 type PasetoAuth interface {
-	VerifyToken(token string) (*ServiceClaims, error)
-	NewToken(data TokenData) (string, error)
+	VerifyToken(token string) (*models.ServiceClaims, error)
+	NewToken(data models.TokenData) (string, *models.ServiceClaims, error)
 }
 
 type pasetoAuth struct {
-	privateKey    *pvx.AsymSecretKey
-	publicKey     *pvx.AsymPublicKey
-	asymmetricKey []byte
+	privateKey *pvx.AsymSecretKey
+	publicKey  *pvx.AsymPublicKey
 }
 
-func NewPaseto(key []byte) (PasetoAuth, error) {
+func NewPaseto() PasetoAuth {
 
 	pubKey, privKey, _ := ed25519.GenerateKey(nil)
 
@@ -25,15 +25,14 @@ func NewPaseto(key []byte) (PasetoAuth, error) {
 	publicKey := pvx.NewAsymmetricPublicKey(pubKey, pvx.Version4)
 
 	return &pasetoAuth{
-		asymmetricKey: key,
-		privateKey:    privateKey,
-		publicKey:     publicKey,
-	}, nil
+		privateKey: privateKey,
+		publicKey:  publicKey,
+	}
 }
 
-func (pa *pasetoAuth) NewToken(data TokenData) (string, error) {
+func (pa *pasetoAuth) NewToken(data models.TokenData) (string, *models.ServiceClaims, error) {
 
-	serviceClaims := &ServiceClaims{}
+	serviceClaims := &models.ServiceClaims{}
 
 	iss := time.Now().UTC()
 	exp := iss.Add(data.Duration)
@@ -52,18 +51,23 @@ func (pa *pasetoAuth) NewToken(data TokenData) (string, error) {
 		serviceClaims,
 		pvx.WithFooter(serviceClaims.Footer))
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return authToken, nil
+	claims, err := pa.VerifyToken(authToken)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return authToken, claims, nil
 }
 
-func (pa *pasetoAuth) VerifyToken(token string) (*ServiceClaims, error) {
+func (pa *pasetoAuth) VerifyToken(token string) (*models.ServiceClaims, error) {
 	pv4 := pvx.NewPV4Public()
 	tk := pv4.Verify(token, pa.publicKey)
 
-	f := Footer{}
-	sc := ServiceClaims{
+	f := models.Footer{}
+	sc := models.ServiceClaims{
 		Footer: f,
 	}
 

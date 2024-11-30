@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package roles_pb;
+option go_package = "auth-service/internal/grpc/pb/roles_pb";
+
+import "common.proto";
+
+message RoleListParams {
+  optional RoleFilter filter = 1;
+  optional common.Pagination pagination = 2;
+}
+
+message RoleFilter {
+  optional common.ArrayString ids = 1;
+  optional common.ArrayString names = 2;
+}

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package users_pb;
+option go_package = "auth-service/internal/grpc/pb/users_pb";
+
+import "common.proto";
+import "google/protobuf/timestamp.proto";
+
+
+message CreateUserRequest {
+  string login = 1;
+  string password = 2;
+  string firstname = 3;
+  string lastname = 4;
+  string email = 5;
+  string gender = 6;
+  optional RoleIDs roleIDs = 7;
+  google.protobuf.Timestamp birthdate = 8;
+}
+
+message UpdateUserRequest {
+  common.ID id = 1;
+  UpdateUser user = 2;
+}
+
+message UpdateUser {
+  optional string login = 1;
+  optional string password = 2;
+  optional string firstname = 3;
+  optional string lastname = 4;
+  optional string email = 5;
+  optional string gender = 6;
+  optional RoleIDs roleIDs = 7;
+  google.protobuf.Timestamp birthdate = 8;
+}
+
+message RoleIDs {
+  repeated common.ID roleID = 1;
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package roles_pb;
+option go_package = "auth-service/internal/grpc/pb/roles_pb";
+
+import "roles_pb/role.proto";
+import "roles_pb/get_role.proto";
+import "common.proto";
+
+service RoleService {
+  // get role by id
+  rpc getByID(common.ID) returns (roles_pb.Role) {};
+  // get role list
+  rpc getList(roles_pb.RoleListParams) returns (roles_pb.RoleList) {};
+
+  // create new role
+  rpc create(roles_pb.RoleCreateRequest) returns (roles_pb.Role) {};
+  // update role by id
+  rpc update(roles_pb.RoleUpdateRequest) returns (roles_pb.Role) {};
+  // delete role by id
+  rpc delete(common.ID) returns (common.IsSuccess) {};
+}

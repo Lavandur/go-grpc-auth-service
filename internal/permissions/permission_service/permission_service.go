@@ -50,7 +50,7 @@ func (p *permissionService) Create(ctx context.Context, data *models.PermissionI
 
 	perm := models.Permission{
 		PermissionID: uuid.New().String(),
-		Name:         data.Name,
+		Title:        data.Title,
 		Description:  data.Description,
 	}
 

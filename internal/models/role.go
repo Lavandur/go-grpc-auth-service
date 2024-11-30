@@ -7,23 +7,44 @@ import (
 
 type Permission struct {
 	PermissionID string                 `json:"permissionID" db:"id"`
-	Name         string                 `json:"name" db:"name"`
+	Title        string                 `json:"title" db:"title"`
 	Description  common.LocalizedString `json:"description" db:"description"`
 }
 
 type PermissionInput struct {
-	Name        string
+	Title       string
 	Description common.LocalizedString
 }
 
 type Role struct {
 	RoleID      string                 `json:"roleID"`
-	Name        string                 `json:"name"`
+	Title       string                 `json:"title"`
 	Description common.LocalizedString `json:"description,omitempty"`
 	CreatedAt   time.Time              `json:"createdAt"`
 }
 
+type RoleInput struct {
+	Title       string
+	Description *common.LocalizedString
+}
+
+type RoleUpdateInput struct {
+	Title       *string
+	Description *common.LocalizedString
+}
+
+func (r *RoleUpdateInput) ToUpdatedModel(oldRole *Role) *Role {
+	if r.Title != nil {
+		oldRole.Title = *r.Title
+	}
+	if r.Description != nil {
+		oldRole.Description = *r.Description
+	}
+
+	return oldRole
+}
+
 type RoleFilter struct {
 	RoleID *[]string
-	Name   *[]string
+	Title  *[]string
 }

@@ -2,10 +2,12 @@ package main
 
 import (
 	"auth-service/internal/auth"
+	"auth-service/internal/auth/auth_service"
 	"auth-service/internal/common"
-	"auth-service/internal/grpc"
+	"auth-service/internal/delivery"
 	repository3 "auth-service/internal/roles/repository"
-	"auth-service/internal/service"
+	"auth-service/internal/roles/role_service"
+	"auth-service/internal/users"
 	repository2 "auth-service/internal/users/repository"
 	"auth-service/internal/users/user_service"
 	"auth-service/pkg/config"
@@ -21,7 +23,7 @@ import (
 func main() {
 	/*perm := models.Permission{
 		PermissionID: uuid.New().String(),
-		Name:         "fds",
+		Title:         "fds",
 		Description: common.LocalizedString{
 			"sfdfs": "FSDFSF",
 		},
@@ -39,16 +41,15 @@ func main() {
 	rolesRepos := repository3.NewRoleRepository(pg, logger)
 	userRepos := repository2.NewUsersRepository(pg, rolesRepos, logger)
 
-	userService := user_service.NewUserService(userRepos, rolesRepos, logger)
-	key := []byte("1234567890abcdefghijklmnoqrstuvw")
-	paseto, err := service.NewPaseto(key)
-	if err != nil {
-		logger.Fatal(err)
-	}
-	authS := service.NewAuthServiceImpl(paseto, userService, logger)
+	roleService := role_service.NewRoleService(rolesRepos, logger, conf)
+	userService := user_service.NewUserService(userRepos, roleService, logger)
+	paseto := auth_service.NewPaseto()
 
-	authServ := auth.NewAuthService(authS, userService, logger)
-	server := grpc.NewGRPCServer(authServ)
+	authS := auth_service.NewAuthServiceImpl(paseto, userService, logger)
+
+	authServ := auth.NewAuthService(authS, logger)
+	usServ := users.NewUserGrpcService(userService, logger)
+	server := delivery.NewGRPCServer(authServ, usServ)
 
 	l, _ := net.Listen("tcp", ":8080")
 	defer l.Close()

@@ -11,3 +11,4 @@ app:
       password: "auth"
       sslmode: disable
   log-level: "debug"
+  default-role: "USER"

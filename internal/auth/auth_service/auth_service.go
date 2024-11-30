@@ -1,6 +1,7 @@
-package service
+package auth_service
 
 import (
+	"auth-service/internal/auth"
 	"auth-service/internal/common"
 	"auth-service/internal/models"
 	"auth-service/internal/users"
@@ -15,10 +16,6 @@ var (
 	ErrWrongPassword = errors.New("wrong password")
 )
 
-type AuthService interface {
-	Login(ctx context.Context, login, password string) (*models.User, *models.AuthResponse, error)
-}
-
 type authService struct {
 	paseto      PasetoAuth
 	userService users.UserService
@@ -30,7 +27,7 @@ func NewAuthServiceImpl(
 	paseto PasetoAuth,
 	userService users.UserService,
 	logger *logrus.Logger,
-) AuthService {
+) auth.AuthService {
 	return &authService{
 		paseto:      paseto,
 		userService: userService,
@@ -38,20 +35,30 @@ func NewAuthServiceImpl(
 	}
 }
 
-func (a *authService) Login(ctx context.Context, login, password string) (*models.User, *models.AuthResponse, error) {
+func (a *authService) Register(ctx context.Context, login, password string) (*models.AuthResponse, error) {
+	a.logger.Debugf("Register user with login: %s", login)
+
+	/*data
+
+	token, claims, err := a.paseto.NewToken()
+	if err != nil {
+		return nil, err
+	}
+
+	return*/
+	return nil, nil
+}
+
+func (a *authService) Login(ctx context.Context, login, password string) (*models.AuthResponse, error) {
 	a.logger.WithField("login", login).Debug("Login user")
 
-	logins := []string{login}
-	filter := &models.UserFilter{Login: &logins}
-	list, err := a.userService.GetList(ctx, filter, nil)
-	if err != nil || len(list) == 0 {
+	user, err := a.userService.GetByLogin(ctx, login)
+	if err != nil {
 		a.logger.
 			WithField("login", login).
 			Error("user by login not found")
-		return nil, nil, common.ErrNotFound
+		return nil, common.ErrNotFound
 	}
-
-	user := list[0]
 
 	if !a.checkPasswordHash(password, user.HashedPassword) {
 		a.logger.WithFields(
@@ -61,26 +68,22 @@ func (a *authService) Login(ctx context.Context, login, password string) (*model
 				"password": password,
 			},
 		).Error("failed comparing passwords")
-		return nil, nil, ErrWrongPassword
+		return nil, ErrWrongPassword
 	}
 
-	data := TokenData{
+	data := models.TokenData{
 		Subject:  user.UserID,
 		Duration: 60 * time.Second,
-		AdditionalClaims: AdditionalClaims{
+		AdditionalClaims: models.AdditionalClaims{
 			ID:   user.UserID,
 			Role: user.Login,
 		},
-		Footer: Footer{},
+		Footer: models.Footer{},
 	}
 
-	token, err := a.paseto.NewToken(data)
+	token, claims, err := a.paseto.NewToken(data)
 	if err != nil {
-		return nil, nil, err
-	}
-	claims, err := a.paseto.VerifyToken(token)
-	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	response := &models.AuthResponse{
@@ -88,7 +91,7 @@ func (a *authService) Login(ctx context.Context, login, password string) (*model
 		PublicTokenExpiry: claims.Expiration.UTC(),
 	}
 
-	return user, response, nil
+	return response, nil
 }
 
 func (a *authService) checkPasswordHash(password string, hash string) bool {

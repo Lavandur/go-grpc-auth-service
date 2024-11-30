@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package users_pb;
+option go_package = "internal/grpc/pb/users_pb";
+
+import "users_pb/user.proto";
+import "users_pb/create_user.proto";
+import "users_pb/get_user.proto";
+import "common.proto";
+
+service UserService {
+  // get list users with filter and pagination
+  rpc getList(UserListParams) returns (ArrayUser) {};
+  // get user by id
+  rpc getByID(common.ID) returns (User) {};
+
+  // create user
+  rpc create(CreateUserRequest) returns (User) {};
+  //update user
+  rpc update(UpdateUserRequest) returns (User) {};
+  // delete user by id
+  rpc deleteByID(common.ID) returns (User) {};
+
+  // self profile
+  rpc me(common.Empty) returns (User) {}
+}

@@ -22,11 +22,11 @@ migrate_down:
 
 make-proto:
 	cd internal/grpc && \
-	rm -f pb/*.pb.go && \
-	protoc \
-    --proto_path=protos \
-    --go_out=pb \
-    --go_opt=paths=source_relative \
-    --go-grpc_out=pb \
-    --go-grpc_opt=paths=source_relative \
-    protos/*.proto
+	rm -rf pb/*.pb.go && \
+	find ../../protos -name "*.proto" -print0 | xargs -0 -I{} protoc \
+		--proto_path=../../protos \
+		--go_out=pb \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=pb \
+		--go-grpc_opt=paths=source_relative \
+		{}

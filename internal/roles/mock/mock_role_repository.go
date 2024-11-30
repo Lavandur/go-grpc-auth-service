@@ -2,7 +2,7 @@
 // Source: internal/roles/pg_repository.go
 
 // Package repository is a generated GoMock package.
-package mock
+package roles_mock
 
 import (
 	common "auth-service/internal/common"

@@ -8,6 +8,7 @@ import (
 
 type UserRepository interface {
 	GetByID(ctx context.Context, id string) (*models.User, error)
+	GetByLogin(ctx context.Context, login string) (*models.User, error)
 	GetList(ctx context.Context, filter *models.UserFilter, pagination *common.Pagination) ([]*models.User, error)
 
 	Create(ctx context.Context, data *models.User) (*models.User, error)

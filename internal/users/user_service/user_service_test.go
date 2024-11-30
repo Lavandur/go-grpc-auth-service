@@ -3,8 +3,8 @@ package user_service
 import (
 	"auth-service/internal/common"
 	"auth-service/internal/models"
-	roleMock "auth-service/internal/roles/mock"
-	userMock "auth-service/internal/users/mock"
+	roles_mock "auth-service/internal/roles/mock"
+	users_mock "auth-service/internal/users/mock"
 	"auth-service/pkg/logger"
 	"context"
 	"github.com/golang/mock/gomock"
@@ -23,7 +23,7 @@ func Test_userService_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	userRepository := userMock.NewMockUserRepository(ctrl)
+	userRepository := users_mock.NewMockUserRepository(ctrl)
 	userRepository.EXPECT().
 		Create(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, user *models.User) (*models.User, error) {
@@ -36,8 +36,8 @@ func Test_userService_Create(t *testing.T) {
 		}).
 		AnyTimes()
 
-	roleRepository := roleMock.NewMockRoleRepository(ctrl)
-	roleRepository.EXPECT().
+	roleService := roles_mock.NewMockRoleService(ctrl)
+	roleService.EXPECT().
 		GetList(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(expected.Roles, nil).
 		AnyTimes()
@@ -77,7 +77,7 @@ func Test_userService_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &userService{
 				userRepository: userRepository,
-				roleRepository: roleRepository,
+				roleService:    roleService,
 				logger:         log,
 			}
 			got, err := u.Create(tt.args.ctx, tt.args.data)
@@ -102,7 +102,7 @@ func getUser(password string) *models.User {
 		},
 		Roles: []*models.Role{{
 			RoleID:      "SOME ROLE ID",
-			Name:        "SOME ROLE NAME",
+			Title:       "SOME ROLE NAME",
 			Description: nil,
 			CreatedAt:   time.Now().UTC().Truncate(time.Millisecond),
 		}},
