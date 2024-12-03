@@ -3,10 +3,15 @@ syntax = "proto3";
 package auth_pb;
 option go_package = "auth-service/internal/grpc/pb/auth_pb";
 
+import "common.proto";
 import "auth_pb/token.proto";
 
 
 service AuthService {
+  // login user with login and password
   rpc Login(LoginRequest) returns (AuthResponse) {};
+  // checks whether the user has rights
+  rpc HasPermission(CheckPermissionRequest) returns (common.IsSuccess) {};
+  // refresh token
   rpc RefreshPublicToken(RefreshTokenRequest) returns (AuthResponse) {};
 }

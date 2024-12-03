@@ -1,13 +1,13 @@
 package main
 
 import (
-	"auth-service/internal/auth"
 	"auth-service/internal/auth/auth_service"
 	"auth-service/internal/common"
 	"auth-service/internal/delivery"
+	"auth-service/internal/permissions/permission_service"
+	"auth-service/internal/permissions/repository"
 	repository3 "auth-service/internal/roles/repository"
 	"auth-service/internal/roles/role_service"
-	"auth-service/internal/users"
 	repository2 "auth-service/internal/users/repository"
 	"auth-service/internal/users/user_service"
 	"auth-service/pkg/config"
@@ -37,19 +37,22 @@ func main() {
 	pg, _ := postgres.NewPG(conf)
 	logger := logrus.New()
 
-	//permRepos := repository.NewPermissionRepository(pg, logger)
+	permRepos := repository.NewPermissionRepository(pg)
 	rolesRepos := repository3.NewRoleRepository(pg, logger)
 	userRepos := repository2.NewUsersRepository(pg, rolesRepos, logger)
 
+	permissionService := permission_service.NewPermissionService(permRepos, logger)
 	roleService := role_service.NewRoleService(rolesRepos, logger, conf)
 	userService := user_service.NewUserService(userRepos, roleService, logger)
 	paseto := auth_service.NewPaseto()
 
-	authS := auth_service.NewAuthServiceImpl(paseto, userService, logger)
+	authS := auth_service.NewAuthServiceImpl(paseto, userService, roleService, permissionService, logger)
 
-	authServ := auth.NewAuthService(authS, logger)
-	usServ := users.NewUserGrpcService(userService, logger)
-	server := delivery.NewGRPCServer(authServ, usServ)
+	authServ := delivery.NewAuthService(authS, logger)
+	roleServ := delivery.NewRoleGRPC(roleService, permissionService, logger)
+	usServ := delivery.NewUserGrpcService(userService, logger)
+
+	server := delivery.NewGRPCServer(authServ, usServ, roleServ)
 
 	l, _ := net.Listen("tcp", ":8080")
 	defer l.Close()

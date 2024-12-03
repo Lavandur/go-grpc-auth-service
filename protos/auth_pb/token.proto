@@ -3,11 +3,17 @@ syntax = "proto3";
 package auth_pb;
 option go_package = "auth-service/internal/grpc/pb/auth_pb";
 
+import "common.proto";
 import "google/protobuf/timestamp.proto";
 
 message LoginRequest {
   string login = 1;
   string password = 2;
+}
+
+message CheckPermissionRequest {
+  common.ID userID = 1;
+  string permission = 2;
 }
 
 message RegisterRequest {

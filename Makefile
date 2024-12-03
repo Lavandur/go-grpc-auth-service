@@ -1,4 +1,4 @@
-make-test:
+test:
 	go test ./... -v -cover
 
 DB_NAME = auth
@@ -20,7 +20,7 @@ migrate_down:
 
 
 
-make-proto:
+proto:
 	cd internal/grpc && \
 	rm -rf pb/*.pb.go && \
 	find ../../protos -name "*.proto" -print0 | xargs -0 -I{} protoc \

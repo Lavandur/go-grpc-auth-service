@@ -5,6 +5,7 @@ option go_package = "auth-service/internal/grpc/pb/roles_pb";
 
 import "roles_pb/role.proto";
 import "roles_pb/get_role.proto";
+import "roles_pb/permission.proto";
 import "common.proto";
 
 service RoleService {
@@ -19,4 +20,16 @@ service RoleService {
   rpc update(roles_pb.RoleUpdateRequest) returns (roles_pb.Role) {};
   // delete role by id
   rpc delete(common.ID) returns (common.IsSuccess) {};
+
+  // get role permissions by role id
+  rpc getRolePermissions(common.ID) returns (common.ArrayString) {};
+  // set role permissions by role id
+  rpc setRolePermissions(roles_pb.SetRolePermissionsRequest) returns (common.IsSuccess) {};
+
+  // get permission by id
+  rpc getPermissionByID(common.ID) returns (roles_pb.Permission) {};
+  // get all permissions
+  rpc getPermissionList(common.Empty) returns (roles_pb.PermissionList) {};
+  // create permission
+  rpc createPermission(roles_pb.PermissionCreateRequest) returns (roles_pb.Permission) {};
 }

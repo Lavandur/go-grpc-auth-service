@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package roles_pb;
+option go_package = "auth-service/internal/grpc/pb/roles_pb";
+
+import "common.proto";
+
+message Permission {
+  common.ID id = 1;
+  string title = 2;
+  map<string, string> description = 3;
+}
+
+message PermissionList {
+  repeated Permission list = 1;
+}
+
+message PermissionInput {
+  string title = 1;
+  map<string, string> description = 2;
+}
+
+message PermissionCreateRequest {
+  PermissionInput data = 1;
+}
+
+message SetRolePermissionsRequest {
+  common.ID id = 1;
+  common.ArrayString permissions = 2;
+}

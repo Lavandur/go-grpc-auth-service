@@ -5,19 +5,23 @@ option go_package = "auth-service/internal/grpc/pb/roles_pb";
 
 import "common.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/struct.proto";
 
 
 message Role {
   common.ID id = 1;
   string title = 2;
-  google.protobuf.Struct description = 3;
+  optional common.LocalizedString description = 3;
   google.protobuf.Timestamp createdAt = 4;
 }
 
 message RoleInput {
   string title = 1;
-  google.protobuf.Struct description = 2;
+  optional common.LocalizedString description = 2;
+}
+
+message RoleUpdatedInput {
+  optional string title = 1;
+  optional common.LocalizedString description = 2;
 }
 
 message RoleList {
@@ -30,5 +34,5 @@ message RoleCreateRequest {
 
 message RoleUpdateRequest {
   common.ID id = 1;
-  RoleInput data = 2;
+  RoleUpdatedInput data = 2;
 }

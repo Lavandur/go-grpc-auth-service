@@ -10,17 +10,17 @@ import "common.proto";
 
 service UserService {
   // get list users with filter and pagination
-  rpc getList(UserListParams) returns (ArrayUser) {};
+  rpc getList(users_pb.UserListParams) returns (users_pb.ArrayUser) {};
   // get user by id
-  rpc getByID(common.ID) returns (User) {};
+  rpc getByID(common.ID) returns (users_pb.User) {};
 
   // create user
-  rpc create(CreateUserRequest) returns (User) {};
+  rpc create(users_pb.CreateUserRequest) returns (users_pb.User) {};
   //update user
-  rpc update(UpdateUserRequest) returns (User) {};
+  rpc update(users_pb.UpdateUserRequest) returns (users_pb.User) {};
   // delete user by id
-  rpc deleteByID(common.ID) returns (User) {};
+  rpc deleteByID(common.ID) returns (users_pb.User) {};
 
   // self profile
-  rpc me(common.Empty) returns (User) {}
+  rpc me(common.Empty) returns (users_pb.User) {}
 }

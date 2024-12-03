@@ -22,3 +22,7 @@ message ArrayString {
 message IsSuccess {
   bool value = 1;
 }
+
+message LocalizedString {
+  map<string, string> value = 1;
+}

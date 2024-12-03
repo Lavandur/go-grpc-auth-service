@@ -1,9 +1,10 @@
-package users
+package delivery
 
 import (
 	"auth-service/internal/common"
 	"auth-service/internal/grpc/pb"
 	"auth-service/internal/grpc/pb/users_pb"
+	"auth-service/internal/users"
 	"context"
 	"errors"
 	"github.com/sirupsen/logrus"
@@ -12,12 +13,12 @@ import (
 type UserGrpcService struct {
 	users_pb.UnimplementedUserServiceServer
 
-	userService UserService
+	userService users.UserService
 	logger      *logrus.Logger
 }
 
 func NewUserGrpcService(
-	userService UserService,
+	userService users.UserService,
 	logger *logrus.Logger,
 ) *UserGrpcService {
 	return &UserGrpcService{

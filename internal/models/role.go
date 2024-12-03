@@ -25,12 +25,12 @@ type Role struct {
 
 type RoleInput struct {
 	Title       string
-	Description *common.LocalizedString
+	Description common.LocalizedString
 }
 
 type RoleUpdateInput struct {
 	Title       *string
-	Description *common.LocalizedString
+	Description common.LocalizedString
 }
 
 func (r *RoleUpdateInput) ToUpdatedModel(oldRole *Role) *Role {
@@ -38,7 +38,7 @@ func (r *RoleUpdateInput) ToUpdatedModel(oldRole *Role) *Role {
 		oldRole.Title = *r.Title
 	}
 	if r.Description != nil {
-		oldRole.Description = *r.Description
+		oldRole.Description = r.Description
 	}
 
 	return oldRole

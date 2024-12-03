@@ -64,7 +64,7 @@ func (r *roleService) Create(ctx context.Context, data *models.RoleInput) (*mode
 		ctx, &models.Role{
 			RoleID:      uuid.NewString(),
 			Title:       data.Title,
-			Description: *data.Description,
+			Description: data.Description,
 			CreatedAt:   common.GetCurrentTime(),
 		})
 	if err != nil {

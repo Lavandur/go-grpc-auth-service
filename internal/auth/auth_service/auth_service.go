@@ -4,21 +4,27 @@ import (
 	"auth-service/internal/auth"
 	"auth-service/internal/common"
 	"auth-service/internal/models"
+	"auth-service/internal/permissions"
+	"auth-service/internal/roles"
 	"auth-service/internal/users"
 	"context"
 	"errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"slices"
 	"time"
 )
 
 var (
-	ErrWrongPassword = errors.New("wrong password")
+	ErrWrongPassword   = errors.New("wrong password")
+	ErrNotEnoughRights = errors.New("not enough rights")
 )
 
 type authService struct {
-	paseto      PasetoAuth
-	userService users.UserService
+	paseto            PasetoAuth
+	userService       users.UserService
+	roleService       roles.RoleService
+	permissionService permissions.PermissionService
 
 	logger *logrus.Logger
 }
@@ -26,12 +32,16 @@ type authService struct {
 func NewAuthServiceImpl(
 	paseto PasetoAuth,
 	userService users.UserService,
+	roleService roles.RoleService,
+	permissionService permissions.PermissionService,
 	logger *logrus.Logger,
 ) auth.AuthService {
 	return &authService{
-		paseto:      paseto,
-		userService: userService,
-		logger:      logger,
+		paseto:            paseto,
+		userService:       userService,
+		roleService:       roleService,
+		permissionService: permissionService,
+		logger:            logger,
 	}
 }
 
@@ -92,6 +102,28 @@ func (a *authService) Login(ctx context.Context, login, password string) (*model
 	}
 
 	return response, nil
+}
+
+func (a *authService) HasPermission(ctx context.Context, userID, permission string) (bool, error) {
+	a.logger.Debugf("Check permission: %s by user with id: %s", permission, userID)
+
+	user, err := a.userService.GetByID(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	for _, role := range user.Roles {
+		perm, err := a.permissionService.GetRolePermissions(ctx, role.RoleID)
+		if err != nil {
+			return false, err
+		}
+
+		if slices.Contains(perm, permission) {
+			return true, nil
+		}
+	}
+
+	return false, ErrNotEnoughRights
 }
 
 func (a *authService) checkPasswordHash(password string, hash string) bool {
