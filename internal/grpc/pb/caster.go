@@ -3,6 +3,10 @@ package pb
 import "auth-service/internal/common"
 
 func (v *Pagination) ToModel() *common.Pagination {
+	if v == nil {
+		return nil
+	}
+
 	var pagination *common.Pagination
 	if v.Offset != nil {
 		offset := uint(*v.Offset)

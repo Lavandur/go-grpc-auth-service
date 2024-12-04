@@ -4,6 +4,7 @@ import (
 	"auth-service/internal/auth/auth_service"
 	"auth-service/internal/common"
 	"auth-service/internal/delivery"
+	"auth-service/internal/middleware/interceptor"
 	"auth-service/internal/permissions/permission_service"
 	"auth-service/internal/permissions/repository"
 	repository3 "auth-service/internal/roles/repository"
@@ -11,9 +12,9 @@ import (
 	repository2 "auth-service/internal/users/repository"
 	"auth-service/internal/users/user_service"
 	"auth-service/pkg/config"
+	logger2 "auth-service/pkg/logger"
 	"auth-service/pkg/postgres"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"net"
 	"os"
 	"os/signal"
@@ -35,7 +36,7 @@ func main() {
 
 	conf, _ := config.SetupConfiguration()
 	pg, _ := postgres.NewPG(conf)
-	logger := logrus.New()
+	logger := logger2.SetupLogger(conf)
 
 	permRepos := repository.NewPermissionRepository(pg)
 	rolesRepos := repository3.NewRoleRepository(pg, logger)
@@ -44,15 +45,17 @@ func main() {
 	permissionService := permission_service.NewPermissionService(permRepos, logger)
 	roleService := role_service.NewRoleService(rolesRepos, logger, conf)
 	userService := user_service.NewUserService(userRepos, roleService, logger)
-	paseto := auth_service.NewPaseto()
+	paseto := auth_service.NewPaseto(conf)
 
-	authS := auth_service.NewAuthServiceImpl(paseto, userService, roleService, permissionService, logger)
+	authS := auth_service.NewAuthServiceImpl(paseto, userService, permissionService, logger)
 
 	authServ := delivery.NewAuthService(authS, logger)
 	roleServ := delivery.NewRoleGRPC(roleService, permissionService, logger)
 	usServ := delivery.NewUserGrpcService(userService, logger)
 
-	server := delivery.NewGRPCServer(authServ, usServ, roleServ)
+	authInter := interceptor.NewAuthInterceptor(paseto, logger)
+
+	server := delivery.NewGRPCServer(authServ, usServ, roleServ, authInter)
 
 	l, _ := net.Listen("tcp", ":8080")
 	defer l.Close()

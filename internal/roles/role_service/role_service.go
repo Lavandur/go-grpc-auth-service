@@ -6,8 +6,8 @@ import (
 	"auth-service/internal/roles"
 	"auth-service/pkg/config"
 	"context"
-	"errors"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,6 +43,8 @@ func (r *roleService) GetByID(ctx context.Context, id string) (*models.Role, err
 }
 
 func (r *roleService) GetList(ctx context.Context, filter *models.RoleFilter, pagination *common.Pagination) ([]*models.Role, error) {
+	r.logger.Debugf("Get role list by filter: %+v pagination: %+v", filter, pagination)
+
 	list, err := r.roleRepository.GetList(ctx, filter, pagination)
 	if err != nil {
 		return nil, err
@@ -60,18 +62,19 @@ func (r *roleService) Create(ctx context.Context, data *models.RoleInput) (*mode
 		return exists, err
 	}
 
-	role, err := r.roleRepository.Create(
-		ctx, &models.Role{
-			RoleID:      uuid.NewString(),
-			Title:       data.Title,
-			Description: data.Description,
-			CreatedAt:   common.GetCurrentTime(),
-		})
-	if err != nil {
-		return nil, err
+	role := &models.Role{
+		RoleID:      uuid.NewString(),
+		Title:       data.Title,
+		Description: data.Description,
+		CreatedAt:   common.GetCurrentTime(),
 	}
 
-	return role, nil
+	created, err := r.roleRepository.Create(ctx, role)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed creating role")
+	}
+
+	return created, nil
 }
 
 func (r *roleService) Update(ctx context.Context, id string, data *models.RoleUpdateInput) (*models.Role, error) {

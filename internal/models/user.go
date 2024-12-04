@@ -22,32 +22,6 @@ type User struct {
 	SearchIndex           *string    `json:"searchIndex"`
 }
 
-type Person struct {
-	Firstname string    `json:"firstname"`
-	Lastname  string    `json:"lastname"`
-	Birthdate time.Time `json:"birthdate,omitempty"`
-	Email     string    `json:"email,omitempty"`
-	Gender    string    `json:"gender,omitempty"`
-}
-
-func (a *Person) Value() (driver.Value, error) {
-	return json.Marshal(a)
-}
-
-func (a *Person) Scan(value interface{}) error {
-	b, ok := value.(string)
-	if !ok {
-		return errors.New("type assertion to string failed")
-	}
-
-	return json.Unmarshal([]byte(b), &a)
-}
-
-type AuthResponse struct {
-	PublicToken       string
-	PublicTokenExpiry time.Time
-}
-
 type UserInput struct {
 	Login     string
 	Password  string
@@ -67,7 +41,7 @@ type UserUpdateInput struct {
 	Birthdate *time.Time
 	Email     *string
 	Gender    *string
-	RoleIDs   []string
+	RoleIDs   *[]string
 }
 
 func (u *UserUpdateInput) ToUpdatedModel(oldUser *User) {
@@ -98,4 +72,25 @@ type UserFilter struct {
 	UserID *[]string
 	Login  *[]string
 	Email  *[]string
+}
+
+type Person struct {
+	Firstname string    `json:"firstname"`
+	Lastname  string    `json:"lastname"`
+	Birthdate time.Time `json:"birthdate,omitempty"`
+	Email     string    `json:"email,omitempty"`
+	Gender    string    `json:"gender,omitempty"`
+}
+
+func (a *Person) Value() (driver.Value, error) {
+	return json.Marshal(a)
+}
+
+func (a *Person) Scan(value interface{}) error {
+	b, ok := value.(string)
+	if !ok {
+		return errors.New("type assertion to string failed")
+	}
+
+	return json.Unmarshal([]byte(b), &a)
 }

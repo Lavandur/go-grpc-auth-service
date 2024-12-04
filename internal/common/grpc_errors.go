@@ -9,4 +9,6 @@ var (
 
 	ErrBuildQuery   = errors.New("Build query error")
 	ErrConnectionDB = errors.New("Database connection error")
+
+	ErrPermissionDenied = errors.New("Permission denied")
 )

@@ -6,10 +6,10 @@ import (
 	"auth-service/internal/roles"
 	"auth-service/internal/users"
 	"context"
-	"errors"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"time"
 )
@@ -78,7 +78,7 @@ func (r *usersRepository) GetList(
 	usersList := make([]*models.User, 0)
 
 	whereList := r.getWhereList(filter)
-	query, _, err := common.GetPagination(
+	query, _, err := common.AppendPagination(
 		goqu.From("users").Where(whereList...),
 		pagination,
 	).ToSQL()

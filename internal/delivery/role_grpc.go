@@ -1,6 +1,8 @@
 package delivery
 
 import (
+	"auth-service/internal/auth"
+	"auth-service/internal/common"
 	"auth-service/internal/grpc/pb"
 	"auth-service/internal/grpc/pb/roles_pb"
 	"auth-service/internal/permissions"
@@ -9,9 +11,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	READ_ROLE  = "READ_ROLE"
+	WRITE_ROLE = "WRITE_ROLE"
+
+	READ_PERMISSION  = "READ_PERMISSION"
+	WRITE_PERMISSION = "WRITE_PERMISSION"
+)
+
 type RoleGRPCService struct {
 	roles_pb.UnimplementedRoleServiceServer
 
+	authService       auth.AuthService
 	roleService       roles.RoleService
 	permissionService permissions.PermissionService
 	logger            *logrus.Logger
@@ -30,6 +41,10 @@ func NewRoleGRPC(
 }
 
 func (r *RoleGRPCService) GetByID(ctx context.Context, id *pb.ID) (*roles_pb.Role, error) {
+	if !r.authService.HasPermission(ctx, READ_ROLE) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Get role by id: %s", id.GetId())
 
 	role, err := r.roleService.GetByID(ctx, id.GetId())
@@ -41,6 +56,10 @@ func (r *RoleGRPCService) GetByID(ctx context.Context, id *pb.ID) (*roles_pb.Rol
 }
 
 func (r *RoleGRPCService) GetList(ctx context.Context, params *roles_pb.RoleListParams) (*roles_pb.RoleList, error) {
+	if !r.authService.HasPermission(ctx, READ_ROLE) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Get role list with filter: %v pagination: %v", params.Filter, params.Pagination)
 
 	filter := params.Filter.ToModel()
@@ -54,6 +73,10 @@ func (r *RoleGRPCService) GetList(ctx context.Context, params *roles_pb.RoleList
 }
 
 func (r *RoleGRPCService) Create(ctx context.Context, request *roles_pb.RoleCreateRequest) (*roles_pb.Role, error) {
+	if !r.authService.HasPermission(ctx, WRITE_ROLE) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Create role request: %v", request)
 
 	role, err := r.roleService.Create(ctx, request.Data.ToModel())
@@ -65,6 +88,10 @@ func (r *RoleGRPCService) Create(ctx context.Context, request *roles_pb.RoleCrea
 }
 
 func (r *RoleGRPCService) Update(ctx context.Context, request *roles_pb.RoleUpdateRequest) (*roles_pb.Role, error) {
+	if !r.authService.HasPermission(ctx, WRITE_ROLE) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Update role request: %v", request)
 
 	role, err := r.roleService.Update(ctx, request.Id.GetId(), request.Data.ToModel())
@@ -76,6 +103,10 @@ func (r *RoleGRPCService) Update(ctx context.Context, request *roles_pb.RoleUpda
 }
 
 func (r *RoleGRPCService) Delete(ctx context.Context, id *pb.ID) (*pb.IsSuccess, error) {
+	if !r.authService.HasPermission(ctx, WRITE_ROLE) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Delete role by id: %s", id.GetId())
 
 	err := r.roleService.Delete(ctx, id.GetId())
@@ -87,6 +118,10 @@ func (r *RoleGRPCService) Delete(ctx context.Context, id *pb.ID) (*pb.IsSuccess,
 }
 
 func (r *RoleGRPCService) GetRolePermissions(ctx context.Context, id *pb.ID) (*pb.ArrayString, error) {
+	if !r.authService.HasPermission(ctx, READ_PERMISSION) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Get role permissions by role id: %s", id.GetId())
 
 	rolePermissions, err := r.permissionService.GetRolePermissions(ctx, id.GetId())
@@ -98,6 +133,10 @@ func (r *RoleGRPCService) GetRolePermissions(ctx context.Context, id *pb.ID) (*p
 }
 
 func (r *RoleGRPCService) SetRolePermissions(ctx context.Context, request *roles_pb.SetRolePermissionsRequest) (*pb.IsSuccess, error) {
+	if !r.authService.HasPermission(ctx, WRITE_PERMISSION) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Set role permissions with role id: %s", request.GetId())
 
 	_, err := r.permissionService.SetRolePermissions(ctx,
@@ -111,6 +150,10 @@ func (r *RoleGRPCService) SetRolePermissions(ctx context.Context, request *roles
 }
 
 func (r *RoleGRPCService) GetPermissionByID(ctx context.Context, id *pb.ID) (*roles_pb.Permission, error) {
+	if !r.authService.HasPermission(ctx, READ_PERMISSION) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Get permission by id: %s", id.GetId())
 
 	permission, err := r.permissionService.GetByID(ctx, id.GetId())
@@ -122,6 +165,10 @@ func (r *RoleGRPCService) GetPermissionByID(ctx context.Context, id *pb.ID) (*ro
 }
 
 func (r *RoleGRPCService) GetPermissionList(ctx context.Context, _ *pb.Empty) (*roles_pb.PermissionList, error) {
+	if !r.authService.HasPermission(ctx, READ_PERMISSION) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Get all permissions")
 
 	list, err := r.permissionService.GetList(ctx)
@@ -133,6 +180,10 @@ func (r *RoleGRPCService) GetPermissionList(ctx context.Context, _ *pb.Empty) (*
 }
 
 func (r *RoleGRPCService) CreatePermission(ctx context.Context, request *roles_pb.PermissionCreateRequest) (*roles_pb.Permission, error) {
+	if !r.authService.HasPermission(ctx, WRITE_PERMISSION) {
+		return nil, common.ErrPermissionDenied
+	}
+
 	r.logger.Debugf("Create permission request: %v", request.Data)
 
 	permission, err := r.permissionService.Create(ctx, request.Data.ToModel())

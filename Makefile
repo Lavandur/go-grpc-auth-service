@@ -1,4 +1,5 @@
 test:
+	go clean -testcache
 	go test ./... -v -cover
 
 DB_NAME = auth

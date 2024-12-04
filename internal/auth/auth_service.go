@@ -8,5 +8,5 @@ import (
 type AuthService interface {
 	Login(ctx context.Context, login, password string) (*models.AuthResponse, error)
 	Register(ctx context.Context, login, password string) (*models.AuthResponse, error)
-	HasPermission(ctx context.Context, userId, permission string) (bool, error)
+	HasPermission(ctx context.Context, permission string) bool
 }

@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type AuthServiceImpl struct {
+type AuthGRPCService struct {
 	auth_pb.UnimplementedAuthServiceServer
 
 	authService auth.AuthService
@@ -20,13 +20,13 @@ func NewAuthService(
 	authService auth.AuthService,
 	logger *logrus.Logger,
 ) auth_pb.AuthServiceServer {
-	return &AuthServiceImpl{
+	return &AuthGRPCService{
 		authService: authService,
 		logger:      logger,
 	}
 }
 
-func (a *AuthServiceImpl) Login(ctx context.Context, request *auth_pb.LoginRequest) (*auth_pb.AuthResponse, error) {
+func (a *AuthGRPCService) Login(ctx context.Context, request *auth_pb.LoginRequest) (*auth_pb.AuthResponse, error) {
 	a.logger.Debugf("Login user with login %s", request.GetLogin())
 
 	response, err := a.authService.Login(ctx, request.GetLogin(), request.GetPassword())
@@ -40,18 +40,10 @@ func (a *AuthServiceImpl) Login(ctx context.Context, request *auth_pb.LoginReque
 	}, nil
 }
 
-func (a *AuthServiceImpl) HasPermission(ctx context.Context, request *auth_pb.CheckPermissionRequest) (*pb.IsSuccess, error) {
+func (a *AuthGRPCService) HasPermission(ctx context.Context, request *auth_pb.CheckPermissionRequest) (*pb.IsSuccess, error) {
 	a.logger.Debugf("Does the user have permission %s", request.GetPermission())
 
-	has, err := a.authService.HasPermission(ctx, request.UserID.GetId(), request.GetPermission())
-	if err != nil {
-		return nil, err
-	}
+	has := a.authService.HasPermission(ctx, request.GetPermission())
 
 	return &pb.IsSuccess{Value: has}, nil
-}
-
-func (a *AuthServiceImpl) RefreshPublicToken(ctx context.Context, request *auth_pb.RefreshTokenRequest) (*auth_pb.AuthResponse, error) {
-	//TODO implement me
-	panic("implement me")
 }

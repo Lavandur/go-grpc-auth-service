@@ -24,8 +24,8 @@ type (
 		DefaultRoleName string `mapstructure:"default-role"`
 	}
 	Auth struct {
-		AccessTokenLifeTime  int `mapstructure:"access-life-time"`
-		RefreshTokenLifeTime int `mapstructure:"refresh-life-time"`
+		TokenLifeTime        int64 `mapstructure:"access-life-time"`
+		RefreshTokenLifeTime int64 `mapstructure:"refresh-life-time"`
 	}
 	DB struct {
 		PostgresQL `mapstructure:"postgresql"`

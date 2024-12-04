@@ -63,6 +63,9 @@ func (r *roleRepository) GetByID(ctx context.Context, id string) (*models.Role, 
 		QueryRow(ctx, getRoleByID, args).
 		Scan(&role.RoleID, &role.Title, &role.Description, &role.CreatedAt)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, common.ErrNotFound
+		}
 		return nil, err
 	}
 	return &role, nil
@@ -77,7 +80,7 @@ func (r *roleRepository) GetList(
 	roleList := make([]*models.Role, 0)
 
 	whereList := r.getWhereList(filter)
-	query, _, err := common.GetPagination(
+	query, _, err := common.AppendPagination(
 		goqu.From("roles").Where(whereList...),
 		pagination,
 	).ToSQL()

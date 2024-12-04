@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
 
 func Test_userService_Create(t *testing.T) {
@@ -40,6 +39,11 @@ func Test_userService_Create(t *testing.T) {
 	roleService.EXPECT().
 		GetList(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(expected.Roles, nil).
+		AnyTimes()
+
+	roleService.EXPECT().
+		GetDefaultRole(gomock.Any()).
+		Return(expected.Roles[0]).
 		AnyTimes()
 
 	log := logger.SetupLogger(nil)
@@ -88,7 +92,7 @@ func Test_userService_Create(t *testing.T) {
 }
 
 func getUser(password string) *models.User {
-	dateTime := time.Now().UTC().Truncate(time.Microsecond)
+	dateTime := common.GetCurrentTime()
 	return &models.User{
 		UserID:         uuid.New().String(),
 		Login:          uuid.New().String(),
@@ -104,7 +108,7 @@ func getUser(password string) *models.User {
 			RoleID:      "SOME ROLE ID",
 			Title:       "SOME ROLE NAME",
 			Description: nil,
-			CreatedAt:   time.Now().UTC().Truncate(time.Millisecond),
+			CreatedAt:   common.GetCurrentTime(),
 		}},
 		CreatedAt:             dateTime,
 		UpdatedAt:             dateTime,

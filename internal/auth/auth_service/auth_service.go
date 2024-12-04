@@ -2,17 +2,14 @@ package auth_service
 
 import (
 	"auth-service/internal/auth"
-	"auth-service/internal/common"
 	"auth-service/internal/models"
 	"auth-service/internal/permissions"
-	"auth-service/internal/roles"
 	"auth-service/internal/users"
 	"context"
 	"errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"slices"
-	"time"
 )
 
 var (
@@ -23,7 +20,6 @@ var (
 type authService struct {
 	paseto            PasetoAuth
 	userService       users.UserService
-	roleService       roles.RoleService
 	permissionService permissions.PermissionService
 
 	logger *logrus.Logger
@@ -32,14 +28,12 @@ type authService struct {
 func NewAuthServiceImpl(
 	paseto PasetoAuth,
 	userService users.UserService,
-	roleService roles.RoleService,
 	permissionService permissions.PermissionService,
 	logger *logrus.Logger,
 ) auth.AuthService {
 	return &authService{
 		paseto:            paseto,
 		userService:       userService,
-		roleService:       roleService,
 		permissionService: permissionService,
 		logger:            logger,
 	}
@@ -53,9 +47,7 @@ func (a *authService) Register(ctx context.Context, login, password string) (*mo
 	token, claims, err := a.paseto.NewToken()
 	if err != nil {
 		return nil, err
-	}
-
-	return*/
+	}*/
 	return nil, nil
 }
 
@@ -64,10 +56,7 @@ func (a *authService) Login(ctx context.Context, login, password string) (*model
 
 	user, err := a.userService.GetByLogin(ctx, login)
 	if err != nil {
-		a.logger.
-			WithField("login", login).
-			Error("user by login not found")
-		return nil, common.ErrNotFound
+		return nil, err
 	}
 
 	if !a.checkPasswordHash(password, user.HashedPassword) {
@@ -77,21 +66,11 @@ func (a *authService) Login(ctx context.Context, login, password string) (*model
 				"login":    login,
 				"password": password,
 			},
-		).Error("failed comparing passwords")
+		).Error(ErrWrongPassword)
 		return nil, ErrWrongPassword
 	}
 
-	data := models.TokenData{
-		Subject:  user.UserID,
-		Duration: 60 * time.Second,
-		AdditionalClaims: models.AdditionalClaims{
-			ID:   user.UserID,
-			Role: user.Login,
-		},
-		Footer: models.Footer{},
-	}
-
-	token, claims, err := a.paseto.NewToken(data)
+	token, claims, err := a.paseto.NewToken(user)
 	if err != nil {
 		return nil, err
 	}
@@ -104,26 +83,32 @@ func (a *authService) Login(ctx context.Context, login, password string) (*model
 	return response, nil
 }
 
-func (a *authService) HasPermission(ctx context.Context, userID, permission string) (bool, error) {
-	a.logger.Debugf("Check permission: %s by user with id: %s", permission, userID)
+func (a *authService) HasPermission(ctx context.Context, permission string) bool {
+	userID, ok := ctx.Value("userID").(string)
+	if !ok || userID == "" {
+		a.logger.Debugf("userID not found or userID is blank in ctx")
+		return false
+	}
+
+	a.logger.Debugf("Check permission: %s for user with id: %s", permission, userID)
 
 	user, err := a.userService.GetByID(ctx, userID)
 	if err != nil {
-		return false, err
+		return false
 	}
 
 	for _, role := range user.Roles {
-		perm, err := a.permissionService.GetRolePermissions(ctx, role.RoleID)
+		permList, err := a.permissionService.GetRolePermissions(ctx, role.RoleID)
 		if err != nil {
-			return false, err
+			return false
 		}
 
-		if slices.Contains(perm, permission) {
-			return true, nil
+		if slices.Contains(permList, permission) {
+			return true
 		}
 	}
 
-	return false, ErrNotEnoughRights
+	return false
 }
 
 func (a *authService) checkPasswordHash(password string, hash string) bool {

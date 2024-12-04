@@ -1,7 +1,7 @@
 app:
   auth:
-    refresh-life-time: 20
-    access-life-time: 2
+    refresh-life-time: 120
+    access-life-time: 30
   db:
     postgresql:
       host: "localhost"

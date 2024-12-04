@@ -7,8 +7,8 @@ import (
 	"auth-service/internal/users"
 	"context"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type userService struct {
@@ -31,7 +31,7 @@ func NewUserService(
 }
 
 func (u *userService) GetByID(ctx context.Context, id string) (*models.User, error) {
-	u.logger.Infof("Get user by ID: %s", id)
+	u.logger.Debugf("Get user by ID: %s", id)
 
 	user, err := u.userRepository.GetByID(ctx, id)
 	if err != nil {
@@ -42,36 +42,43 @@ func (u *userService) GetByID(ctx context.Context, id string) (*models.User, err
 }
 
 func (u *userService) GetByLogin(ctx context.Context, login string) (*models.User, error) {
-	u.logger.Infof("Get user by login: %s", login)
+	u.logger.Debugf("Get user by login: %s", login)
 
 	user, err := u.userRepository.GetByLogin(ctx, login)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Failed to get user by login: %s", login)
 	}
 
 	return user, nil
 }
 
 func (u *userService) GetList(ctx context.Context, filter *models.UserFilter, pagination *common.Pagination) ([]*models.User, error) {
-	u.logger.Infof("Get users by filter: %+v", filter)
+	u.logger.Debugf("Get users by filter: %+v pagination: %+v", filter, pagination)
 
 	listUsers, err := u.userRepository.GetList(ctx, filter, pagination)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to get user list")
 	}
 
 	return listUsers, nil
 }
 
 func (u *userService) Create(ctx context.Context, data *models.UserInput) (*models.User, error) {
+	u.logger.Debugf("Create user: %+v", data)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
 
+	roleIDs := data.RoleIDs
+	if roleIDs == nil || len(roleIDs) == 0 {
+		defaultRole := u.roleService.GetDefaultRole(ctx)
+		roleIDs = []string{defaultRole.RoleID}
+	}
+
 	roleFilter := &models.RoleFilter{
-		RoleID: &data.RoleIDs,
+		RoleID: &roleIDs,
 	}
 	userRoles, err := u.roleService.GetList(ctx, roleFilter, nil)
 	if err != nil {
@@ -91,15 +98,15 @@ func (u *userService) Create(ctx context.Context, data *models.UserInput) (*mode
 			Gender:    data.Gender,
 		},
 		Roles:                 userRoles,
-		CreatedAt:             time.Now().UTC().Truncate(time.Millisecond),
-		UpdatedAt:             time.Now().UTC().Truncate(time.Millisecond),
+		CreatedAt:             common.GetCurrentTime(),
+		UpdatedAt:             common.GetCurrentTime(),
 		DeletedAt:             nil,
 		LastPasswordRestoreAt: nil,
 		SearchIndex:           nil,
 	}
 	res, err := u.userRepository.Create(ctx, user)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Failed to create user with error:")
 	}
 
 	return res, nil
@@ -116,7 +123,7 @@ func (u *userService) Update(ctx context.Context, id string, data *models.UserUp
 	data.ToUpdatedModel(user)
 
 	filter := &models.RoleFilter{
-		RoleID: &data.RoleIDs,
+		RoleID: data.RoleIDs,
 	}
 
 	roleList, err := u.roleService.GetList(ctx, filter, nil)
@@ -124,7 +131,8 @@ func (u *userService) Update(ctx context.Context, id string, data *models.UserUp
 
 	result, err := u.userRepository.Update(ctx, user)
 	if err != nil {
-		return nil, err
+		return nil,
+			errors.Wrapf(err, "Failed to update user with error:")
 	}
 
 	return result, nil

@@ -16,6 +16,10 @@ func ToProto(role *models.Role) *Role {
 }
 
 func (f *RoleFilter) ToModel() *models.RoleFilter {
+	if f == nil {
+		return nil
+	}
+
 	var filter models.RoleFilter
 
 	if f.Ids != nil {

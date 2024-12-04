@@ -33,11 +33,11 @@ func SetupLogger(cfg *config.Config) *logrus.Logger {
 		case envLocal:
 			logger.SetLevel(logrus.DebugLevel)
 			logger.SetFormatter(&logrus.JSONFormatter{})
-			logger.SetReportCaller(true)
+			//logger.SetReportCaller(true)
 		case envDebug:
 			logger.SetLevel(logrus.TraceLevel)
 			logger.SetFormatter(&logrus.JSONFormatter{})
-			logger.SetReportCaller(true)
+			//logger.SetReportCaller(true)
 		case envProd:
 			logger.SetLevel(logrus.InfoLevel)
 			logger.SetFormatter(&logrus.TextFormatter{})
@@ -45,7 +45,7 @@ func SetupLogger(cfg *config.Config) *logrus.Logger {
 		default:
 			logger.SetLevel(logrus.DebugLevel)
 			logger.SetFormatter(&logrus.JSONFormatter{})
-			logger.SetReportCaller(true)
+			//logger.SetReportCaller(true)
 		}
 
 		instance = logger

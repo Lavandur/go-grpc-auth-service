@@ -1,17 +1,20 @@
 package postgres
 
 import (
+	"auth-service/internal/common"
 	"auth-service/pkg/config"
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
 
 var (
-	pool *pgxpool.Pool
+	// create a new pool for every test
+	//pool *pgxpool.Pool
 	once sync.Once
 )
 
@@ -42,11 +45,18 @@ func NewPG(config *config.Config) (*pgxpool.Pool, error) {
 	poolCfg.MaxConnLifetime = maxConnLifetime
 	poolCfg.MinConns = minConns
 
-	pool, err = pgxpool.NewWithConfig(ctx, poolCfg)
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		logrus.Error(err)
 	}
+
 	//})
+
+	err = pool.Ping(ctx)
+	if err != nil {
+		pool.Close()
+		return nil, errors.Wrap(common.ErrConnectionDB, err.Error())
+	}
 
 	return pool, nil
 }

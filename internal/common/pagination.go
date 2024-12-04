@@ -8,7 +8,7 @@ type Pagination struct {
 	Size    *uint   `json:"size"`
 }
 
-func GetPagination(
+func AppendPagination(
 	query *goqu.SelectDataset,
 	pagination *Pagination,
 ) *goqu.SelectDataset {

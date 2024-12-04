@@ -20,6 +20,10 @@ func ToProto(u *models.User) *User {
 }
 
 func (f *UserFilter) ToModel() *models.UserFilter {
+	if f == nil {
+		return nil
+	}
+
 	var filter *models.UserFilter
 	if f.UserIDs != nil {
 		filter.UserID = &f.UserIDs.Value
@@ -55,26 +59,27 @@ func (u *CreateUserRequest) ToModel() *models.UserInput {
 }
 
 func (u *UpdateUserRequest) ToModel() (string, *models.UserUpdateInput) {
-	var birthdate time.Time
+	var birthdate *time.Time = nil
 	if u.User.Birthdate != nil {
-		birthdate = u.User.Birthdate.AsTime()
+		t := u.User.Birthdate.AsTime()
+		birthdate = &t
 	}
 
 	roleIds := make([]string, 0)
 	if u.User.RoleIDs != nil {
-		for _, id := range u.User.RoleIDs.RoleID {
-			roleIds = append(roleIds, id.Id)
+		for _, id := range u.User.RoleIDs.GetRoleID() {
+			roleIds = append(roleIds, id.GetId())
 		}
 	}
 
-	return u.Id.Id, &models.UserUpdateInput{
+	return u.Id.GetId(), &models.UserUpdateInput{
 		Login:     u.User.Login,
 		Password:  u.User.Password,
 		Firstname: u.User.Firstname,
 		Lastname:  u.User.Lastname,
-		Birthdate: &birthdate, //TODO
+		Birthdate: birthdate, //TODO
 		Email:     u.User.Email,
 		Gender:    u.User.Gender,
-		RoleIDs:   roleIds,
+		RoleIDs:   &roleIds,
 	}
 }

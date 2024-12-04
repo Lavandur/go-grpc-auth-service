@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type UserGrpcService struct {
+type UserGRPCService struct {
 	users_pb.UnimplementedUserServiceServer
 
 	userService users.UserService
@@ -20,14 +20,14 @@ type UserGrpcService struct {
 func NewUserGrpcService(
 	userService users.UserService,
 	logger *logrus.Logger,
-) *UserGrpcService {
-	return &UserGrpcService{
+) *UserGRPCService {
+	return &UserGRPCService{
 		userService: userService,
 		logger:      logger,
 	}
 }
 
-func (u *UserGrpcService) GetList(ctx context.Context, params *users_pb.UserListParams) (*users_pb.ArrayUser, error) {
+func (u *UserGRPCService) GetList(ctx context.Context, params *users_pb.UserListParams) (*users_pb.ArrayUser, error) {
 	u.logger.Infof(
 		"Get list of users by filter: %v and by pagination %v",
 		params.Filter, params.Pagination)
@@ -47,7 +47,7 @@ func (u *UserGrpcService) GetList(ctx context.Context, params *users_pb.UserList
 	return &users_pb.ArrayUser{User: result}, nil
 }
 
-func (u *UserGrpcService) GetByID(ctx context.Context, id *pb.ID) (*users_pb.User, error) {
+func (u *UserGRPCService) GetByID(ctx context.Context, id *pb.ID) (*users_pb.User, error) {
 	u.logger.Infof("Get user by id: %s", id.Id)
 
 	user, err := u.userService.GetByID(ctx, id.Id)
@@ -58,7 +58,7 @@ func (u *UserGrpcService) GetByID(ctx context.Context, id *pb.ID) (*users_pb.Use
 	return users_pb.ToProto(user), nil
 }
 
-func (u *UserGrpcService) Create(ctx context.Context, request *users_pb.CreateUserRequest) (*users_pb.User, error) {
+func (u *UserGRPCService) Create(ctx context.Context, request *users_pb.CreateUserRequest) (*users_pb.User, error) {
 	u.logger.Debugf("Create a new user with login: %v", request.Login)
 
 	usr, err := u.userService.GetByLogin(ctx, request.Login)
@@ -77,8 +77,8 @@ func (u *UserGrpcService) Create(ctx context.Context, request *users_pb.CreateUs
 	return users_pb.ToProto(user), nil
 }
 
-func (u *UserGrpcService) Update(ctx context.Context, request *users_pb.UpdateUserRequest) (*users_pb.User, error) {
-	u.logger.Debugf("Update a user with id: %s", request.Id.Id)
+func (u *UserGRPCService) Update(ctx context.Context, request *users_pb.UpdateUserRequest) (*users_pb.User, error) {
+	u.logger.Debugf("Update a user with id: %s", request.Id.GetId())
 
 	id, data := request.ToModel()
 	user, err := u.userService.Update(ctx, id, data)
@@ -89,7 +89,7 @@ func (u *UserGrpcService) Update(ctx context.Context, request *users_pb.UpdateUs
 	return users_pb.ToProto(user), nil
 }
 
-func (u *UserGrpcService) DeleteByID(ctx context.Context, id *pb.ID) (*users_pb.User, error) {
+func (u *UserGRPCService) DeleteByID(ctx context.Context, id *pb.ID) (*users_pb.User, error) {
 	u.logger.Debugf("Delete a user with id: %s", id)
 
 	user, err := u.userService.Delete(ctx, id.Id)
@@ -100,7 +100,7 @@ func (u *UserGrpcService) DeleteByID(ctx context.Context, id *pb.ID) (*users_pb.
 	return users_pb.ToProto(user), nil
 }
 
-func (u *UserGrpcService) Me(ctx context.Context, empty *pb.Empty) (*users_pb.User, error) {
+func (u *UserGRPCService) Me(ctx context.Context, empty *pb.Empty) (*users_pb.User, error) {
 	//TODO implement me
 	panic("implement me")
 }
