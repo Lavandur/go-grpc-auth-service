@@ -1,4 +1,4 @@
-package testingdb
+package testdb
 
 import (
 	"auth-service/pkg/config"

@@ -11,6 +11,8 @@ import (
 	"slices"
 )
 
+var withoutAuth = []string{"/auth_pb.AuthService/login", "/users_pb.UserService/create", "/roles_pb.RoleService/getList"}
+
 type AuthInterceptor struct {
 	paseto auth_service.PasetoAuth
 	logger *logrus.Logger
@@ -34,8 +36,6 @@ func (a *AuthInterceptor) AuthUnaryInterceptor() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		a.logger.Debugf("Executing request with name: %s", info.FullMethod)
-
-		withoutAuth := []string{"/auth_pb.AuthService/login", "/users_pb.UserService/create", "/roles_pb.RoleService/getList"}
 
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok || slices.Contains(withoutAuth, info.FullMethod) {

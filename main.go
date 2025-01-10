@@ -4,7 +4,7 @@ import (
 	"auth-service/internal/auth/auth_service"
 	"auth-service/internal/common"
 	"auth-service/internal/delivery"
-	"auth-service/internal/middleware/interceptor"
+	"auth-service/internal/delivery/middleware/interceptor"
 	"auth-service/internal/permissions/permission_service"
 	"auth-service/internal/permissions/repository"
 	repository3 "auth-service/internal/roles/repository"
