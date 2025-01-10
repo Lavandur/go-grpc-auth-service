@@ -3,7 +3,6 @@ package repository
 import (
 	"auth-service/internal/common"
 	"auth-service/internal/models"
-	"auth-service/testingdb"
 	"context"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -29,7 +28,7 @@ func Test_roleRepository_Create(t *testing.T) {
 	t.Run("Create role", func(t *testing.T) {
 		t.Parallel()
 
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		create, err := repos.Create(context.Background(), &role)
@@ -41,7 +40,7 @@ func Test_roleRepository_Create(t *testing.T) {
 	t.Run("Create role with same id", func(t *testing.T) {
 		t.Parallel()
 
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(context.Background(), &role)
@@ -65,7 +64,7 @@ func Test_roleRepository_Update(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(ctx, &role)
@@ -81,7 +80,7 @@ func Test_roleRepository_Update(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Update(ctx, &role)
@@ -102,7 +101,7 @@ func Test_roleRepository_Delete(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(ctx, &role)
@@ -116,7 +115,7 @@ func Test_roleRepository_Delete(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		err := repos.Delete(ctx, "some unused id")
@@ -138,7 +137,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(ctx, &role)
@@ -153,7 +152,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.GetByID(ctx, role.RoleID)
@@ -164,7 +163,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		_, err := repos.Create(ctx, &role)
@@ -179,7 +178,7 @@ func Test_roleRepository_Getting(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &roleRepository{pg.DB(), logger}
 
 		for i := 0; i < 10; i++ {

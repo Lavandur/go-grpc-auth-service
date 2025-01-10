@@ -1,10 +1,10 @@
 package delivery
 
 import (
+	"auth-service/internal/delivery/middleware/interceptor"
 	"auth-service/internal/grpc/pb/auth_pb"
 	"auth-service/internal/grpc/pb/roles_pb"
 	"auth-service/internal/grpc/pb/users_pb"
-	"auth-service/internal/middleware/interceptor"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

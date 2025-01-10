@@ -3,7 +3,6 @@ package repository
 import (
 	"auth-service/internal/common"
 	"auth-service/internal/models"
-	"auth-service/testingdb"
 	"context"
 	"fmt"
 	"github.com/google/uuid"
@@ -21,7 +20,7 @@ func Test_permissionRepository_GetRolePermissions(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repository := NewPermissionRepository(pg.DB())
 		id := "3422b448-2460-4fd2-9183-8000de6f8343"
 		expected := []string{"CAN_READ", "CAN_WRITE", "CAN_SEE"}
@@ -54,7 +53,7 @@ func Test_permissionRepository_SetRolePermissions(t *testing.T) {
 		{
 			name: "Set role permissions",
 			fields: fields{
-				db:     testingdb.NewWithIsolatedDatabase(t).DB(),
+				db:     testdb.NewWithIsolatedDatabase(t).DB(),
 				logger: nil,
 			},
 			args: args{
@@ -85,7 +84,7 @@ func Test_permissionRepository_OperationsWithPermissions(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := NewPermissionRepository(pg.DB())
 
 		expected := getPermission()
@@ -99,7 +98,7 @@ func Test_permissionRepository_OperationsWithPermissions(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := NewPermissionRepository(pg.DB())
 
 		expected := getPermission()
@@ -115,7 +114,7 @@ func Test_permissionRepository_OperationsWithPermissions(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := NewPermissionRepository(pg.DB())
 
 		expected := getPermission()
@@ -132,7 +131,7 @@ func Test_permissionRepository_OperationsWithPermissions(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := NewPermissionRepository(pg.DB())
 
 		got, err := repos.GetPermissions(ctx)

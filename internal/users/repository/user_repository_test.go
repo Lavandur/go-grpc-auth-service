@@ -5,7 +5,6 @@ import (
 	"auth-service/internal/models"
 	"auth-service/internal/roles"
 	"auth-service/internal/roles/mock"
-	"auth-service/testingdb"
 	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -38,7 +37,7 @@ func Test_usersRepository_Create(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 
 		ctrl := gomock.NewController(t)
 		roleRep := getRoleRepMock(ctrl)
@@ -57,7 +56,7 @@ func Test_usersRepository_Create(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 
 		ctrl := gomock.NewController(t)
 		roleRep := getRoleRepMock(ctrl)
@@ -87,7 +86,7 @@ func Test_usersRepository_Delete(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
 		_, err := repos.Create(ctx, user)
@@ -101,7 +100,7 @@ func Test_usersRepository_Delete(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
 		_, err := repos.Delete(ctx, user.UserID)
@@ -122,7 +121,7 @@ func Test_usersRepository_Update(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
@@ -140,7 +139,7 @@ func Test_usersRepository_Update(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
 		_, err := repos.Update(ctx, user)
@@ -161,7 +160,7 @@ func Test_usersRepository_Get(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
 		_, err := repos.Create(ctx, user)
@@ -177,7 +176,7 @@ func Test_usersRepository_Get(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
 		result, err := repos.GetByID(ctx, user.UserID)
@@ -189,7 +188,7 @@ func Test_usersRepository_Get(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		pg := testingdb.NewWithIsolatedDatabase(t)
+		pg := testdb.NewWithIsolatedDatabase(t)
 		repos := &usersRepository{pg.DB(), roleRep, nil}
 
 		for i := 0; i < 10; i++ {
